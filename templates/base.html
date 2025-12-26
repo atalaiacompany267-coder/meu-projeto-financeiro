@@ -1166,28 +1166,40 @@
                 box-shadow: var(--shadow-sm);
             }
             
-            /* Force equal width for all stat cards on mobile */
+            /* Force equal width for all stat cards on mobile - iPhone fix */
             .sticky-stats .row {
-                display: flex;
-                flex-wrap: nowrap;
+                display: flex !important;
+                flex-wrap: nowrap !important;
                 gap: 0.5rem;
                 margin: 0 !important;
-                width: 100%;
+                width: 100% !important;
+                justify-content: space-between !important;
             }
             
             .sticky-stats .col-4 {
-                flex: 1 1 0px;
-                min-width: 0;
-                max-width: none;
+                flex: 1 1 0px !important;
+                min-width: 0 !important;
+                max-width: 33.333% !important;
+                width: 33.333% !important;
                 padding: 0 !important;
             }
             
-            /* Equal height for all cards */
+            /* Force equal size for all stat cards regardless of content */
             .sticky-stats .stat-card {
+                flex: 1 1 0px !important;
+                min-width: 0 !important;
                 height: 100%;
                 min-height: 100px;
                 display: flex;
                 flex-direction: column;
+                width: 100% !important;
+            }
+            
+            .sticky-stats .stat-card.entrada,
+            .sticky-stats .stat-card.saida,
+            .sticky-stats .stat-card.saldo {
+                flex: 1 1 0px !important;
+                min-width: 0 !important;
             }
             
             /* Smaller stat cards on mobile */
