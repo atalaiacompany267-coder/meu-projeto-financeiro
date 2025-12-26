@@ -2,7 +2,7 @@ import json
 import pandas as pd
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-from flask import Flask, request, redirect, url_for, flash, render_template_string, session, send_file
+from flask import Flask, request, redirect, url_for, flash, render_template, session, send_file
 from werkzeug.security import generate_password_hash, check_password_hash
 import calendar
 from io import BytesIO
@@ -543,471 +543,8 @@ def processar_importacao(file_obj, user_id):
         print(f"Erro na importação: {e}")
         return -1
 
-# --- HTML TEMPLATE ---
-HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
-    <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; color: #333; transition: background-color 0.3s, color 0.3s; }
-        .navbar { background: #2c3e50; color: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .brand { font-size: 1.2em; font-weight: bold; }
-        .nav-links { display: flex; align-items: center; gap: 20px; }
-        .nav-links a, .dropbtn { color: #ecf0f1; text-decoration: none; font-weight: bold; font-size: 0.9em; background: none; border: none; cursor: pointer; }
-        .nav-links a:hover, .dropbtn:hover { color: #3498db; }
-        .dropdown { position: relative; display: inline-block; }
-        .dropbtn { background-color: transparent; color: #ecf0f1; padding: 0; font-size: 0.9em; border: none; cursor: pointer; font-weight: bold; font-family: inherit; }
-        .dropdown-content { display: none; position: absolute; right: 0; background-color: #fff; min-width: 180px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); z-index: 100; border-radius: 5px; overflow: hidden; text-align: left; }
-        .dropdown-content a { color: #333 !important; padding: 12px 16px; text-decoration: none; display: block; margin: 0 !important; font-weight: normal !important; }
-        .dropdown-content a:hover { background-color: #f1f1f1; color: #3498db !important; }
-        .dropdown:hover .dropdown-content { display: block; }
-        .btn-privacy { background: none; border: none; color: #ecf0f1; cursor: pointer; font-size: 1.1em; padding: 5px; transition: color 0.3s; }
-        .btn-privacy:hover { color: #3498db; }
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: #fff; padding: 20px; border-radius: 10px; border-left: 5px solid; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: background-color 0.3s; }
-        .stat-title { font-size: 0.85em; color: #777; text-transform: uppercase; }
-        .stat-value { font-size: 1.6em; font-weight: bold; margin-bottom: 5px; }
-        .stat-trend { font-size: 0.8em; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .trend-up { color: #27ae60; } .trend-down { color: #c0392b; } .trend-neutral { color: #7f8c8d; }
-        .stat-avg { font-size: 0.75em; color: #7f8c8d; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; }
-        .c-entrada { border-color: #27ae60; color: #27ae60; }
-        .c-saida { border-color: #c0392b; color: #c0392b; }
-        .c-saldo-pos { border-color: #2980b9; color: #2980b9; }
-        .c-saldo-neg { border-color: #c0392b; color: #c0392b; }
-        .analytics-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; margin-bottom: 30px; }
-        .box, .table-container, .content-box { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; transition: background-color 0.3s; }
-        .macro-summary { margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; }
-        body.dark-mode .macro-summary { border-top: 1px solid #333; }
-        .rule-bars .bar-item { margin-bottom: 8px; }
-        .bar-label { display: flex; justify-content: space-between; font-size: 0.8em; margin-bottom: 2px; font-weight: bold; color: #555; }
-        .progress-bg { background: #eee; height: 8px; border-radius: 4px; overflow: hidden; }
-        .progress-fill { height: 100%; border-radius: 4px; transition: width 1s ease-in-out; }
-        .tooltip-container { position: relative; cursor: help; }
-        .tooltip-text { visibility: hidden; width: 250px; background-color: #2c3e50; color: #fff; text-align: center; border-radius: 6px; padding: 8px; position: absolute; z-index: 10; bottom: 125%; left: 50%; margin-left: -125px; opacity: 0; transition: opacity 0.3s; font-size: 0.85em; box-shadow: 0 5px 15px rgba(0,0,0,0.3); pointer-events: none; white-space: normal; line-height: 1.4; }
-        .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
-        .tooltip-text::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #2c3e50 transparent transparent transparent; }
-        @media(max-width: 900px) { .stats-grid, .stats-grid-4, .analytics-grid { grid-template-columns: 1fr; } }
-        .input-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
-        .form-group { flex: 1; min-width: 120px; }
-        .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 1em; }
-        .btn-black { background: #2c3e50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; height: 42px; }
-        .btn-delete { background: #e74c3c; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 0.8em; display: inline-block; text-decoration: none;}
-        .btn-edit { background: #3498db; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 0.8em; display: inline-block; text-decoration: none; }
-        .check-col { width: 50px; text-align: center; }
-        .btn-round { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #bdc3c7; background: #fff; color: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; text-decoration: none; font-size: 0.8em; margin: 0 auto; }
-        .btn-round:hover { border-color: #3498db; }
-        .btn-round.pago { background-color: #009432 !important; border-color: #009432 !important; color: #ffffff !important; box-shadow: 0 0 8px rgba(0, 148, 50, 0.6); opacity: 1 !important;}
-        .btn-pin { background: #7f8c8d; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 0.8em; display: inline-block; text-decoration: none; opacity: 0.4; transition: all 0.3s; }
-        .btn-pin:hover { opacity: 0.8; }
-        .btn-pin.fixado { background: #f39c12 !important; color: #ffffff !important; opacity: 1 !important; box-shadow: 0 0 8px rgba(243, 156, 18, 0.6); }
-        table { width: 100%; min-width: 700px; border-collapse: collapse; }
-        th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 0.85em; color: #666; text-transform: uppercase; transition: background-color 0.3s, color 0.3s; }
-        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 0.95em; transition: border-color 0.3s; }
-        .text-center { text-align: center; } .text-right { text-align: right; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; text-transform: uppercase; display: inline-block; min-width: 70px; text-align: center;}
-        .badge-entrada { background-color: rgba(39, 174, 96, 0.2); color: #27ae60; border: 1px solid #27ae60; }
-        .badge-saida { background-color: rgba(192, 57, 43, 0.2); color: #c0392b; border: 1px solid #c0392b; }
-        .action-btns { white-space: nowrap; display: flex; gap: 8px; justify-content: center; }
-        .filter-controls { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
-        .btn-filter { background: #f8f9fa; color: #555; border: 1px solid #ddd; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .btn-filter.active { background: #3498db; color: white; border-color: #3498db; }
-        .alert { padding: 15px; margin-bottom: 20px; border-radius: 8px; color: white; text-align: center; font-weight: bold; }
-        .success { background: #27ae60; } .danger { background: #e74c3c; } .warning { background: #f39c12; }
-        body.privacy-active .privacy-mask { color: transparent !important; text-shadow: 0 0 10px rgba(0,0,0,0.5) !important; user-select: none; cursor: default; }
-        body.privacy-active canvas { filter: blur(5px); }
-        body.dark-mode { background-color: #121212; color: #e0e0e0; }
-        body.dark-mode .navbar { background: #1f1f1f; }
-        body.dark-mode .stat-card, body.dark-mode .table-container, body.dark-mode .card, body.dark-mode .content-box { background-color: #1e1e1e; color: #e0e0e0; box-shadow: 0 2px 5px rgba(255,255,255,0.05); border-color: #333; }
-        body.dark-mode .stat-avg { background: #333; color: #aaa; }
-        body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode label, body.dark-mode .stat-title { color: #ccc !important; }
-        body.dark-mode .form-control { background-color: #2d2d2d; border: 1px solid #444; color: #fff; }
-        body.dark-mode th { background-color: #2d2d2d; color: #aaa; }
-        body.dark-mode td { border-bottom: 1px solid #333; }
-        body.dark-mode .btn-filter { background-color: #2d2d2d; border: 1px solid #444; color: #ccc; }
-        body.dark-mode .btn-filter.active { background-color: #3498db; border-color: #3498db; color: #fff; }
-        body.dark-mode .dropdown-content { background-color: #2d2d2d; }
-        body.dark-mode .dropdown-content a { color: #e0e0e0 !important; }
-        body.dark-mode .dropdown-content a:hover { background-color: #333; }
-        body.dark-mode .bar-label span { color: #ccc; }
-        body.dark-mode .progress-bg { background: #333; }
-        body.dark-mode .btn-round { border-color: #555; background: #2d2d2d; }
-        body.dark-mode .tooltip-text { background-color: #eee; color: #333; }
-        body.dark-mode .tooltip-text::after { border-color: #eee transparent transparent transparent; }
-        .row-pago { background-color: rgba(39, 174, 96, 0.1); }
-        body.dark-mode .row-pago { background-color: rgba(39, 174, 96, 0.2); }
-        .total-row { background-color: #eee; font-weight: bold; }
-        body.dark-mode .total-row { background-color: #333; color: white; }
-        
-        /* ESTILOS ESPECÍFICOS DE METAS */
-        .meta-card { margin-bottom: 20px; transition: transform 0.2s; }
-        .meta-card:hover { transform: translateY(-5px); }
-        .meta-progress { height: 20px; border-radius: 10px; background: #eee; overflow: hidden; margin: 15px 0; }
-        body.dark-mode .meta-progress { background: #333; }
-        .meta-bar { height: 100%; transition: width 1s; background: linear-gradient(90deg, #3498db, #2ecc71); }
-        .meta-details { display: flex; justify-content: space-between; font-size: 0.9em; font-weight: bold; color: #666; }
-        body.dark-mode .meta-details { color: #aaa; }
-    </style>
-</head>
-<body>
-    {% if mode == 'dashboard' %}
-        <div class="navbar">
-            <div class="brand">DASHBOARD <span>FINANCEIRO</span></div>
-            <div class="nav-links">
-                <button id="btn-privacy" class="btn-privacy"><i class="fas fa-eye"></i></button>
-                <button id="btn-darkmode" class="btn-privacy"><i class="fas fa-moon"></i></button>
-                <span style="border-right: 1px solid rgba(255,255,255,0.2); height: 20px; margin: 0 10px;"></span>
-                <a href="{{ url_for('metas') }}"><i class="fas fa-bullseye"></i> METAS</a>
-                <a href="{{ url_for('lancamentos_fixos') }}"><i class="fas fa-redo-alt"></i> FIXOS</a>
-                <a href="{{ url_for('relatorio_anual') }}"><i class="fas fa-chart-bar"></i> ANUAL</a>
-                <div class="dropdown">
-                    <button class="dropbtn"><i class="fas fa-database"></i> BACKUP <i class="fas fa-caret-down"></i></button>
-                    <div class="dropdown-content">
-                        <a href="{{ url_for('gerar_fixos_cmd', mes=filtro_atual) }}" style="color:#27ae60!important"><i class="fas fa-sync"></i> Gerar Fixos Agora</a>
-                        <a href="{{ url_for('backup_json') }}"><i class="fas fa-download"></i> Salvar Backup (Completo)</a>
-                        <a href="#" onclick="document.getElementById('rest').click();"><i class="fas fa-upload"></i> Restaurar Backup</a>
-                        <a href="#" onclick="document.getElementById('imp').click();" style="color:#27ae60!important"><i class="fas fa-file-excel"></i> Importar Excel</a>
-                    </div>
-                </div>
-                <span style="border-right: 1px solid rgba(255,255,255,0.2); height: 20px; margin: 0 10px;"></span>
-                <div class="dropdown">
-                    <button class="dropbtn"><i class="fas fa-user"></i> {{ user }} <i class="fas fa-caret-down"></i></button>
-                    <div class="dropdown-content">
-                        <a href="{{ url_for('logout') }}" style="color:#e74c3c!important"><i class="fas fa-sign-out-alt"></i> Sair</a>
-                    </div>
-                </div>
-                <form action="{{ url_for('restore_backup') }}" method="POST" enctype="multipart/form-data" style="display:none;"><input type="file" id="rest" name="backup_file" onchange="if(confirm('Restaurar Backup? Isso substituirá seus dados atuais.')){this.form.submit()}"></form>
-                <form action="{{ url_for('importar_planilha_generica') }}" method="POST" enctype="multipart/form-data" style="display:none;"><input type="file" id="imp" name="excel_file" onchange="if(confirm('Importar?')){this.form.submit()}"></form>
-            </div>
-        </div>
-        <div class="container">
-            {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}{% for cat, msg in messages %}<div class="alert {{ cat }}">{{ msg }}</div>{% endfor %}{% endif %}{% endwith %}
-            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                <h2 style="margin:0; color:#2c3e50;">Movimentação - {{ mes_extenso }} {{ ano_extenso }}</h2>
-                <form action="{{ url_for('dashboard') }}" method="GET" style="display:flex; gap:10px;">
-                    <input type="month" name="filtro_mes" class="form-control" value="{{ filtro_atual }}" style="max-width:150px;">
-                    <button class="btn-black" style="height:42px;"><i class="fas fa-filter"></i></button>
-                </form>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-card c-entrada"><div class="stat-title">Entradas</div><div class="stat-value privacy-mask">R$ {{ "%.2f"|format(entrada) }}</div><div class="stat-trend"><span class="{{ 'trend-up' if trend_ent_pct>0 else 'trend-down' }}">{% if trend_ent_pct>0 %}<i class="fas fa-arrow-up"></i>{% elif trend_ent_pct<0 %}<i class="fas fa-arrow-down"></i>{% endif %} {{ "%.0f"|format(trend_ent_pct) }}%</span><span class="stat-avg privacy-mask">Méd: {{ "%.0f"|format(avg_ent) }}</span></div></div>
-                <div class="stat-card c-saida"><div class="stat-title">Saídas</div><div class="stat-value privacy-mask">R$ {{ "%.2f"|format(saida) }}</div><div class="stat-trend"><span class="{{ 'trend-down' if trend_sai_pct>0 else 'trend-up' }}">{% if trend_sai_pct>0 %}<i class="fas fa-arrow-up"></i>{% elif trend_sai_pct<0 %}<i class="fas fa-arrow-down"></i>{% endif %} {{ "%.0f"|format(trend_sai_pct) }}%</span><span class="stat-avg privacy-mask">Méd: {{ "%.0f"|format(avg_sai) }}</span></div></div>
-                <div class="stat-card {{ 'c-saldo-pos' if saldo>=0 else 'c-saldo-neg' }}"><div class="stat-title">Saldo</div><div class="stat-value privacy-mask">R$ {{ "%.2f"|format(saldo) }}</div></div>
-            </div>
-            
-            <div class="analytics-grid">
-                <div class="table-container">
-                    <h3 style="margin-top:0; color:#2c3e50;">Categorias</h3>
-                    <div style="height:250px;"><canvas id="expenseChart"></canvas></div>
-                    <div class="macro-summary">
-                        <div class="rule-bars">
-                            {% set tot=entrada if entrada>0 else 1 %}
-                            <div class="bar-item tooltip-container">
-                                <div class="bar-label"><span>Essenciais (50%)</span><span class="privacy-mask">{{ "%.0f"|format((macro_vals['ESSENCIAIS']/tot)*100) }}%</span></div>
-                                <div class="progress-bg"><div class="progress-fill" style="width:{{ (macro_vals['ESSENCIAIS']/tot)*100 }}%; background:#e74c3c;"></div></div>
-                                <span class="tooltip-text"><b>Itens Inseridos:</b><br>{{ macro_tooltips['ESSENCIAIS'] }}</span>
-                            </div>
-                            <div class="bar-item tooltip-container">
-                                <div class="bar-label"><span>Estilo (30%)</span><span class="privacy-mask">{{ "%.0f"|format((macro_vals['ESTILO_VIDA']/tot)*100) }}%</span></div>
-                                <div class="progress-bg"><div class="progress-fill" style="width:{{ (macro_vals['ESTILO_VIDA']/tot)*100 }}%; background:#f39c12;"></div></div>
-                                <span class="tooltip-text"><b>Itens Inseridos:</b><br>{{ macro_tooltips['ESTILO_VIDA'] }}</span>
-                            </div>
-                            <div class="bar-item tooltip-container">
-                                <div class="bar-label"><span>Invest (20%)</span><span class="privacy-mask">{{ "%.0f"|format((macro_vals['INVESTIMENTOS']/tot)*100) }}%</span></div>
-                                <div class="progress-bg"><div class="progress-fill" style="width:{{ (macro_vals['INVESTIMENTOS']/tot)*100 }}%; background:#27ae60;"></div></div>
-                                <span class="tooltip-text"><b>Itens Inseridos:</b><br>{{ macro_tooltips['INVESTIMENTOS'] }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <h3 style="margin-top:0; color:#2c3e50;">Diário</h3>
-                    <div style="height:340px;"><canvas id="dailyExpenseChart"></canvas></div>
-                </div>
-            </div>
-
-            <div class="content-box">
-                <h4 style="margin-top:0; color:#2c3e50;">Novo Lançamento ({{ hoje_br }})</h4>
-                <form action="{{ url_for('add_lancamento') }}" method="POST">
-                    <div class="input-row" style="margin-bottom:15px;">
-                        <div class="form-group" style="flex:0 0 150px;"><label>Data</label><input name="data" class="form-control date-mask" value="{{ hoje_br }}" required></div>
-                        <div class="form-group" style="flex:0 0 100px;"><label>Tipo</label><select name="tipo" class="form-control"><option value="SAIDA">Saída</option><option value="ENTRADA">Entrada</option></select></div>
-                        <div class="form-group" style="flex:1;"><label>Categoria</label><input name="categoria" class="form-control" list="cat-opts" required placeholder="Ex: Mercado"><datalist id="cat-opts">{% for c in all_categories %}<option value="{{ c }}">{% endfor %}</datalist></div>
-                        <div class="form-group" style="flex:1;"><label>Classificação</label><select name="classificacao" class="form-control"><option value="Essenciais">Essenciais</option><option value="Estilo de Vida">Estilo</option><option value="Investimentos">Invest</option></select></div>
-                    </div>
-                    <div class="input-row" style="margin-bottom:20px;">
-                        <div class="form-group" style="flex:2;"><label>Descrição</label><input name="descricao" class="form-control"></div>
-                        <div class="form-group" style="flex:1;"><label>Valor</label><input type="number" step="0.01" name="valor" class="form-control" required></div>
-                        <div class="form-group" style="flex:0 0 150px;"><label>&nbsp;</label><button class="btn-black" style="width:100%; height:42px;">Adicionar</button></div>
-                    </div>
-                </form>
-            </div>
-
-            <div class="table-container">
-                <div class="filter-controls">
-                    <input id="search-input" class="form-control" placeholder="Buscar..." style="width:100%;">
-                    <button class="btn-filter active" data-filter="all">Tudo</button><button class="btn-filter" data-filter="ENTRADA">Ent</button><button class="btn-filter" data-filter="SAIDA">Sai</button>
-                </div>
-                <div style="overflow-x:auto;">
-                    <table id="lancamentos-table">
-                        <thead><tr><th class="check-col"><i class="fas fa-check-circle"></i></th><th>Data</th><th>Tipo</th><th>Cat</th><th>Desc</th><th style="text-align:right;">Valor</th><th style="text-align:center;">Ações</th></tr></thead>
-                        <tbody>
-                            {% for l in dados_exibicao %}
-                            <tr class="{% if l.Status=='Pago' %}row-pago{% endif %}" data-tipo="{{ l.Tipo }}" data-categoria="{{ l.Categoria|lower }}" data-descricao="{{ l.Descrição|lower }}">
-                                <td class="check-col"><a href="{{ url_for('toggle_status', id=l.ID, filtro_mes=filtro_atual) }}" class="btn-round {% if l.Status=='Pago' %}pago{% endif %}"><i class="fas fa-check"></i></a></td>
-                                <td>{{ l.Data }}</td>
-                                <td><span style="color:{% if l.Tipo=='ENTRADA' %}#27ae60{% else %}#c0392b{% endif %}"><b>{{ l.Tipo }}</b></span></td>
-                                <td>{{ l.Categoria }}</td><td>{{ l.Descrição }}</td>
-                                <td class="privacy-mask" style="text-align:right; font-weight:bold;">R$ {{ "%.2f"|format(l.Valor|abs) }}</td>
-                                <td class="action-btns">
-                                    <a href="{{ url_for('pin_lancamento', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" class="btn-pin {% if l.Fixado=='Sim' %}fixado{% endif %}"><i class="fas fa-thumbtack"></i></a>
-                                    <a href="{{ url_for('edit_lancamento_form', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" class="btn-edit"><i class="fas fa-edit"></i></a>
-                                    <a href="{{ url_for('delete_lancamento', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" class="btn-delete" onclick="return confirm('Excluir?')"><i class="fas fa-trash"></i></a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        
-        {% if ask_to_generate %}
-        <script>
-            window.onload = function() {
-                if(confirm('Deseja lançar as despesas fixas para este mês (' + '{{ mes_extenso }}' + ')?')) {
-                    window.location.href = "{{ url_for('gerar_fixos_cmd', mes=filtro_atual) }}";
-                }
-            }
-        </script>
-        {% endif %}
-        
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const body = document.body;
-                if(localStorage.getItem('isPrivacyActive')==='true') body.classList.add('privacy-active');
-                if(localStorage.getItem('isDarkMode')==='true') body.classList.add('dark-mode');
-                document.getElementById('btn-privacy').onclick=()=>{body.classList.toggle('privacy-active');localStorage.setItem('isPrivacyActive',body.classList.contains('privacy-active'))};
-                document.getElementById('btn-darkmode').onclick=()=>{body.classList.toggle('dark-mode');localStorage.setItem('isDarkMode',body.classList.contains('dark-mode'))};
-                if(document.getElementById('expenseChart')) new Chart(document.getElementById('expenseChart').getContext('2d'), {type:'doughnut',data:{labels:{{ chart_cats|safe }},datasets:[{data:{{ chart_vals|safe }},backgroundColor:['#e74c3c','#3498db','#2ecc71','#f1c40f','#9b59b6','#34495e']}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'right'}}}});
-                if(document.getElementById('dailyExpenseChart')) new Chart(document.getElementById('dailyExpenseChart').getContext('2d'), {type:'bar',data:{labels:{{ chart_days|safe }},datasets:[{label:'Ent',data:{{ chart_daily_in|safe }},backgroundColor:'#27ae60'},{label:'Sai',data:{{ chart_daily_out|safe }},backgroundColor:'#c0392b'},{label:'Sobra',data:{{ chart_daily_bal|safe }},backgroundColor:'#2980b9'}]},options:{maintainAspectRatio:false}});
-                if(typeof $.mask!=='undefined') $('.date-mask').mask('00/00/0000');
-                const table = document.getElementById('lancamentos-table');
-                const inp = document.getElementById('search-input');
-                const btns = document.querySelectorAll('.btn-filter');
-                let filter='all';
-                const rows = table ? Array.from(table.querySelectorAll('tbody tr')) : [];
-                const runFilter = () => {
-                    const txt = inp.value.toLowerCase();
-                    rows.forEach(r => {
-                        const t = r.dataset.tipo;
-                        const match = (r.dataset.descricao.includes(txt) || r.dataset.categoria.includes(txt)) && (filter==='all' || t===filter);
-                        r.style.display = match ? '' : 'none';
-                    });
-                };
-                btns.forEach(b => b.onclick = () => { btns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); filter=b.dataset.filter; runFilter(); });
-                inp.onkeyup = runFilter;
-            });
-        </script>
-    {% endif %}
-
-    {% if mode == 'edit_form' %}
-        <div class="navbar"><div class="brand">EDITAR</div><div class="nav-links"><a href="{{ url_for('dashboard', filtro_mes=request.args.get('filtro_mes', '')) }}">VOLTAR</a></div></div>
-        <div class="container" style="max-width:700px;">
-            <div class="content-box">
-                <h3 style="margin-top:0; color:#2c3e50;">Editar Lançamento #{{ lancamento.ID }}</h3>
-                <form action="{{ url_for('edit_lancamento_save') }}" method="POST">
-                    <input type="hidden" name="lancamento_id" value="{{ lancamento.ID }}">
-                    <input type="hidden" name="filtro_mes_origem" value="{{ request.args.get('filtro_mes', '') }}">
-                    <div class="input-row" style="margin-bottom:15px;">
-                        <div class="form-group" style="flex:0 0 150px;"><label>Data</label><input name="data" class="form-control date-mask" value="{{ lancamento.Data }}" required></div>
-                        <div class="form-group" style="flex:0 0 100px;"><label>Tipo</label><select name="tipo" class="form-control"><option value="SAIDA" {% if lancamento.Tipo=='SAIDA' %}selected{% endif %}>Saída</option><option value="ENTRADA" {% if lancamento.Tipo=='ENTRADA' %}selected{% endif %}>Entrada</option></select></div>
-                        <div class="form-group" style="flex:1;"><label>Categoria</label><input name="categoria" class="form-control" value="{{ lancamento.Categoria }}" required></div>
-                        <div class="form-group" style="flex:1;"><label>Classificação</label><select name="classificacao" class="form-control"><option value="Essenciais" {% if lancamento.Classificação=='Essenciais' %}selected{% endif %}>Essenciais</option><option value="Estilo de Vida" {% if lancamento.Classificação=='Estilo de Vida' %}selected{% endif %}>Estilo</option><option value="Investimentos" {% if lancamento.Classificação=='Investimentos' %}selected{% endif %}>Invest</option></select></div>
-                    </div>
-                    <div class="input-row" style="margin-bottom:20px;">
-                        <div class="form-group" style="flex:2;"><label>Descrição</label><input name="descricao" class="form-control" value="{{ lancamento.Descrição }}"></div>
-                        <div class="form-group" style="flex:1;"><label>Valor</label><input type="number" step="0.01" name="valor" class="form-control" value="{{ '%.2f'|format(lancamento.Valor|abs) }}"></div>
-                    </div>
-                    <button class="btn-black" style="width:100%; height:45px;">SALVAR EDIÇÃO</button>
-                </form>
-            </div>
-            <script>if(typeof $.mask!=='undefined') $('.date-mask').mask('00/00/0000');</script>
-        </div>
-    {% endif %}
-
-    {% if mode == 'lancamentos_fixos' %}
-        <div class="navbar"><div class="brand">FIXOS</div><div class="nav-links"><button id="btn-privacy" class="btn-privacy"><i class="fas fa-eye"></i></button><a href="{{ url_for('dashboard') }}">VOLTAR</a></div></div>
-        <div class="container">
-            <div class="content-box">
-                <h4 style="margin-top:0; color:#2c3e50;">Novo Lançamento Fixo</h4>
-                <form action="{{ url_for('add_fixo') }}" method="POST">
-                    <div class="input-row" style="margin-bottom:15px;">
-                        <div class="form-group" style="flex:0 0 120px;"><label>Tipo</label><select name="tipo" class="form-control"><option value="SAIDA">Saída</option><option value="ENTRADA">Entrada</option></select></div>
-                        <div class="form-group" style="flex:1;"><label>Categoria</label><input name="categoria" class="form-control" list="cat-opts" required placeholder="Categoria"><datalist id="cat-opts">{% for c in categorias_orcamento %}<option value="{{ c }}">{% endfor %}</datalist></div>
-                        <div class="form-group" style="flex:1;"><label>Classificação</label><select name="classificacao" class="form-control"><option value="Essenciais">Essenciais</option><option value="Estilo de Vida">Estilo</option><option value="Investimentos">Invest</option></select></div>
-                    </div>
-                    <div class="input-row" style="margin-bottom:20px;">
-                        <div class="form-group" style="flex:2;"><label>Descrição</label><input name="descricao" class="form-control" placeholder="Descrição"></div>
-                        <div class="form-group" style="flex:1;"><label>Valor (R$)</label><input type="number" step="0.01" name="valor" class="form-control" placeholder="0.00" required></div>
-                        <div class="form-group" style="flex:0 0 100px;"><label>Dia Fixo</label><input type="number" name="dia_fixo" class="form-control" placeholder="Dia" min="1" max="31" required></div>
-                        <div class="form-group" style="flex:0 0 150px;"><label>&nbsp;</label><button class="btn-black" style="width:100%; height:42px;">ADICIONAR</button></div>
-                    </div>
-                </form>
-            </div>
-            <div class="table-container">
-                <h4 style="margin-top:0; color:#2c3e50;">Lançamentos Fixos Cadastrados</h4>
-                <div style="overflow-x:auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="text-center">Dia</th>
-                                <th class="text-center">Tipo</th>
-                                <th>Cat</th>
-                                <th>Desc</th>
-                                <th class="text-right">Valor</th>
-                                <th class="text-center">Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for id, e in fixed_entries %}
-                            <tr>
-                                <td class="text-center">{{ e.dia_fixo }}</td>
-                                <td class="text-center"><span class="badge {% if e.tipo == 'ENTRADA' %}badge-entrada{% else %}badge-saida{% endif %}">{{ e.tipo }}</span></td>
-                                <td>{{ e.categoria }}</td>
-                                <td>{{ e.descricao }}</td>
-                                <td class="privacy-mask text-right" style="font-weight:bold;">R$ {{ "%.2f"|format(e.valor) }}</td>
-                                <td class="action-btns">
-                                    <a href="{{ url_for('edit_fixo_form', id=id) }}" class="btn-edit"><i class="fas fa-edit"></i></a> 
-                                    <a href="{{ url_for('delete_fixo', id=id) }}" class="btn-delete"><i class="fas fa-trash"></i></a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const body = document.body;
-                if(localStorage.getItem('isPrivacyActive')==='true') body.classList.add('privacy-active');
-                if(localStorage.getItem('isDarkMode')==='true') body.classList.add('dark-mode');
-                document.getElementById('btn-privacy').onclick=()=>{body.classList.toggle('privacy-active');localStorage.setItem('isPrivacyActive',body.classList.contains('privacy-active'))};
-            });
-        </script>
-    {% endif %}
-
-    {% if mode == 'edit_fixed_form' %}
-        <div class="navbar"><div class="brand">EDITAR FIXO</div><div class="nav-links"><a href="{{ url_for('lancamentos_fixos') }}">VOLTAR</a></div></div>
-        <div class="container" style="max-width:700px;">
-            <div class="content-box">
-                <h3 style="margin-top:0; color:#2c3e50;">Editar Fixo</h3>
-                <form action="{{ url_for('edit_fixo_save', id=fixo_id) }}" method="POST">
-                    <div class="input-row" style="margin-bottom:15px;">
-                        <div class="form-group" style="flex:0 0 120px;"><label>Tipo</label><select name="tipo" class="form-control"><option value="SAIDA" {% if lancamento_fixo.tipo=='SAIDA' %}selected{% endif %}>Saída</option><option value="ENTRADA" {% if lancamento_fixo.tipo=='ENTRADA' %}selected{% endif %}>Entrada</option></select></div>
-                        <div class="form-group" style="flex:1;"><label>Categoria</label><input name="categoria" class="form-control" value="{{ lancamento_fixo.categoria }}" required></div>
-                        <div class="form-group" style="flex:1;"><label>Classificação</label><select name="classificacao" class="form-control"><option value="Essenciais" {% if lancamento_fixo.classificacao=='Essenciais' %}selected{% endif %}>Essenciais</option><option value="Estilo de Vida" {% if lancamento_fixo.classificacao=='Estilo de Vida' %}selected{% endif %}>Estilo</option><option value="Investimentos" {% if lancamento_fixo.classificacao=='Investimentos' %}selected{% endif %}>Invest</option></select></div>
-                    </div>
-                    <div class="input-row" style="margin-bottom:20px;">
-                        <div class="form-group" style="flex:2;"><label>Descrição</label><input name="descricao" class="form-control" value="{{ lancamento_fixo.descricao }}"></div>
-                        <div class="form-group" style="flex:1;"><label>Valor</label><input type="number" step="0.01" name="valor" class="form-control" value="{{ '%.2f'|format(lancamento_fixo.valor) }}"></div>
-                        <div class="form-group" style="flex:0 0 100px;"><label>Dia</label><input type="number" name="dia_fixo" class="form-control" value="{{ lancamento_fixo.dia_fixo }}"></div>
-                    </div>
-                    <button class="btn-black" style="width:100%; height:45px;">SALVAR</button>
-                </form>
-            </div>
-        </div>
-    {% endif %}
-
-    {% if mode == 'metas' %}
-        <div class="navbar"><div class="brand">METAS & OBJETIVOS</div><div class="nav-links"><button id="btn-privacy" class="btn-privacy"><i class="fas fa-eye"></i></button><a href="{{ url_for('dashboard') }}">VOLTAR</a></div></div>
-        <div class="container">
-            <div class="content-box">
-                <h4 style="margin-top:0; color:#2c3e50;">Nova Meta</h4>
-                <form action="{{ url_for('add_meta') }}" method="POST">
-                    <div class="input-row">
-                        <div class="form-group" style="flex:2;"><label>Nome da Meta (Ex: Carro Novo)</label><input name="descricao" class="form-control" required></div>
-                        <div class="form-group" style="flex:1;"><label>Valor Alvo (R$)</label><input type="number" step="0.01" name="valor_alvo" class="form-control" required></div>
-                        <div class="form-group" style="flex:1;"><label>Já guardado (R$)</label><input type="number" step="0.01" name="valor_atual" class="form-control" value="0"></div>
-                        <div class="form-group" style="flex:0 0 120px;"><label>&nbsp;</label><button class="btn-black" style="width:100%; height:42px;">CRIAR</button></div>
-                    </div>
-                </form>
-            </div>
-            
-            <div class="stats-grid">
-                {% for id, m in metas %}
-                <div class="stat-card meta-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div class="stat-title">{{ m.descricao }}</div>
-                        <div>
-                            <a href="#" onclick="document.getElementById('add_val_id').value='{{ id }}'; document.getElementById('addValModal').style.display='block';" style="color:#27ae60; margin-right:10px;"><i class="fas fa-plus-circle"></i> Add</a>
-                            <a href="{{ url_for('delete_meta', id=id) }}" style="color:#c0392b;" onclick="return confirm('Excluir meta?')"><i class="fas fa-trash"></i></a>
-                        </div>
-                    </div>
-                    <div class="meta-progress">
-                        <div class="meta-bar" style="width: {{ (m.valor_atual / m.valor_alvo * 100)|round }}%"></div>
-                    </div>
-                    <div class="meta-details">
-                        <span class="privacy-mask">R$ {{ "%.2f"|format(m.valor_atual) }}</span>
-                        <span>{{ (m.valor_atual / m.valor_alvo * 100)|round }}%</span>
-                        <span class="privacy-mask">Meta: R$ {{ "%.2f"|format(m.valor_alvo) }}</span>
-                    </div>
-                </div>
-                {% else %}
-                <p style="text-align:center; color:#999; grid-column:span 3;">Nenhuma meta cadastrada ainda.</p>
-                {% endfor %}
-            </div>
-        </div>
-        
-        <div id="addValModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
-            <div style="background:white; margin:100px auto; padding:20px; width:300px; border-radius:10px;">
-                <h4>Adicionar Valor</h4>
-                <form action="{{ url_for('add_valor_meta') }}" method="POST">
-                    <input type="hidden" name="meta_id" id="add_val_id">
-                    <input type="number" step="0.01" name="valor" class="form-control" placeholder="Quanto guardou hoje?" required style="margin-bottom:15px;">
-                    <button class="btn-black" style="width:100%;">Salvar</button>
-                    <button type="button" onclick="document.getElementById('addValModal').style.display='none'" style="width:100%; margin-top:10px; background:none; border:none; color:#777; cursor:pointer;">Cancelar</button>
-                </form>
-            </div>
-        </div>
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const body = document.body;
-                if(localStorage.getItem('isPrivacyActive')==='true') body.classList.add('privacy-active');
-                if(localStorage.getItem('isDarkMode')==='true') body.classList.add('dark-mode');
-                document.getElementById('btn-privacy').onclick=()=>{body.classList.toggle('privacy-active');localStorage.setItem('isPrivacyActive',body.classList.contains('privacy-active'))};
-            });
-        </script>
-    {% endif %}
-
-    {% if mode == 'relatorio_anual' %}
-        <div class="navbar"><div class="brand">ANUAL</div><div class="nav-links"><button id="btn-privacy" class="btn-privacy"><i class="fas fa-eye"></i></button><a href="{{ url_for('dashboard') }}">VOLTAR</a></div></div>
-        <div class="container">
-            <div style="margin-bottom:20px; text-align:right;"><form action="{{ url_for('relatorio_anual') }}" method="GET"><input type="number" name="filtro_ano" value="{{ ano_atual }}" class="form-control" style="width:100px; display:inline-block;"><button class="btn-black"><i class="fas fa-filter"></i></button></form></div>
-            <div class="analytics-grid" style="grid-template-columns:1fr;"><div class="table-container"><h3>Gráfico</h3><div style="height:350px;"><canvas id="anChart"></canvas></div></div><div class="table-container"><h3>Dados</h3><div style="overflow-x:auto;"><table class="annual-table"><thead><tr><th>Mês</th><th>Entrada</th><th>Saída</th><th>Saldo</th></tr></thead><tbody>{% for r in relatorio_anual_data %}<tr><td>{{ r.Periodo }}</td><td class="privacy-mask" style="color:#27ae60;">R$ {{ "%.2f"|format(r.Entrada) }}</td><td class="privacy-mask" style="color:#c0392b;">R$ {{ "%.2f"|format(r.Saida) }}</td><td class="privacy-mask" style="font-weight:bold;">R$ {{ "%.2f"|format(r.Saldo) }}</td></tr>{% endfor %}<tr class="total-row"><td>TOTAL</td><td class="privacy-mask">R$ {{ "%.2f"|format(total_entrada) }}</td><td class="privacy-mask">R$ {{ "%.2f"|format(total_saida) }}</td><td class="privacy-mask">R$ {{ "%.2f"|format(total_saldo) }}</td></tr></tbody></table></div></div></div>
-            <script>
-                document.addEventListener('DOMContentLoaded', () => {
-                    const body = document.body;
-                    if(localStorage.getItem('isPrivacyActive')==='true') body.classList.add('privacy-active');
-                    if(localStorage.getItem('isDarkMode')==='true') body.classList.add('dark-mode');
-                    document.getElementById('btn-privacy').onclick=()=>{body.classList.toggle('privacy-active');localStorage.setItem('isPrivacyActive',body.classList.contains('privacy-active'))};
-                    new Chart(document.getElementById('anChart').getContext('2d'), {type:'bar',data:{labels:{{ chart_labels|safe }},datasets:[{label:'Entrada',data:{{ chart_entrada|safe }},backgroundColor:'#27ae60'},{label:'Saída',data:{{ chart_saida|safe }},backgroundColor:'#c0392b'},{label:'Saldo',data:{{ chart_saldo|safe }},backgroundColor:'#2980b9'}]},options:{maintainAspectRatio:false}});
-                });
-            </script>
-        </div>
-    {% endif %}
-</body>
-</html>
-"""
+# --- TEMPLATES MOVIDOS PARA templates/index.html e templates/login.html ---
+# Os templates HTML agora estão em arquivos separados na pasta templates/
 
 # --- ROTAS ---
 @app.route('/')
@@ -1050,7 +587,32 @@ def dashboard():
         mes_ext = 'Atual'
         ano_ext = hoje.year
     
-    return render_template_string(HTML_TEMPLATE, title="Dashboard", mode='dashboard', user=current_user.username, entrada=ent, saida=sai, saldo=sal, dados_exibicao=dados, chart_cats=json.dumps(cats), chart_vals=json.dumps(vals), chart_days=json.dumps(days), chart_daily_in=json.dumps(d_in), chart_daily_out=json.dumps(d_out), chart_daily_bal=json.dumps(d_bal), filtro_atual=filtro, mes_extenso=mes_ext, ano_extenso=ano_ext, hoje_br=hoje.strftime('%d/%m/%Y'), all_categories=get_all_categories(user_id), trend_ent_pct=t_ent, trend_sai_pct=t_sai, macro_vals=macro, avg_ent=avg_ent, avg_sai=avg_sai, macro_tooltips=tooltips, ask_to_generate=ask_to_generate)
+    return render_template('index.html',
+        active_page='dashboard',
+        user=current_user.username,
+        entrada=ent,
+        saida=sai,
+        saldo=sal,
+        dados_exibicao=dados,
+        chart_cats=json.dumps(cats),
+        chart_vals=json.dumps(vals),
+        chart_days=json.dumps(days),
+        chart_daily_in=json.dumps(d_in),
+        chart_daily_out=json.dumps(d_out),
+        chart_daily_bal=json.dumps(d_bal),
+        filtro_atual=filtro,
+        mes_extenso=mes_ext,
+        ano_extenso=ano_ext,
+        hoje_br=hoje.strftime('%d/%m/%Y'),
+        all_categories=get_all_categories(user_id),
+        trend_ent_pct=t_ent,
+        trend_sai_pct=t_sai,
+        macro_vals=macro,
+        avg_ent=avg_ent,
+        avg_sai=avg_sai,
+        macro_tooltips=tooltips,
+        ask_to_generate=ask_to_generate
+    )
 
 @app.route('/gerar_fixos_cmd')
 @login_required
@@ -1122,7 +684,12 @@ def edit_lancamento_form(lancamento_id):
         'Valor': trans.valor,
         'Classificação': trans.classificacao
     }
-    return render_template_string(HTML_TEMPLATE, title="Editar", mode='edit_form', lancamento=lancamento, categorias_orcamento=get_all_categories(current_user.id))
+    return render_template('edit_lancamento.html',
+        active_page='dashboard',
+        user=current_user.username,
+        lancamento=lancamento,
+        categorias_orcamento=get_all_categories(current_user.id)
+    )
 
 @app.route('/edit_lancamento_save', methods=['POST'])
 @login_required
@@ -1230,7 +797,12 @@ def lancamentos_fixos():
             'classificacao': f.classificacao
         }))
     
-    return render_template_string(HTML_TEMPLATE, title="Fixos", mode='lancamentos_fixos', fixed_entries=fixed_entries, categorias_orcamento=get_all_categories(current_user.id))
+    return render_template('fixos.html',
+        active_page='fixos',
+        user=current_user.username,
+        fixed_entries=fixed_entries,
+        categorias_orcamento=get_all_categories(current_user.id)
+    )
 
 @app.route('/add_fixo', methods=['POST'])
 @login_required
@@ -1275,7 +847,13 @@ def edit_fixo_form(id):
         'dia_fixo': fixed.dia_fixo,
         'classificacao': fixed.classificacao
     }
-    return render_template_string(HTML_TEMPLATE, title="Editar Fixo", mode='edit_fixed_form', fixo_id=id, lancamento_fixo=lancamento_fixo, categorias_orcamento=get_all_categories(current_user.id))
+    return render_template('edit_fixo.html',
+        active_page='fixos',
+        user=current_user.username,
+        fixo_id=id,
+        lancamento_fixo=lancamento_fixo,
+        categorias_orcamento=get_all_categories(current_user.id)
+    )
 
 @app.route('/edit_fixo_save/<int:id>', methods=['POST'])
 @login_required
@@ -1307,7 +885,11 @@ def metas():
             'valor_atual': g.valor_atual
         }))
     
-    return render_template_string(HTML_TEMPLATE, title="Metas", mode='metas', metas=metas_list)
+    return render_template('metas.html',
+        active_page='metas',
+        user=current_user.username,
+        metas=metas_list
+    )
 
 @app.route('/add_meta', methods=['POST'])
 @login_required
@@ -1352,7 +934,19 @@ def relatorio_anual():
     """Relatório anual"""
     ano = int(request.args.get('filtro_ano', datetime.now().year))
     res, te, ts, tsal, lbs, e, s, sl, _ = get_yearly_finance_data(ano, current_user.id)
-    return render_template_string(HTML_TEMPLATE, title="Anual", mode='relatorio_anual', ano_atual=ano, relatorio_anual_data=res, total_entrada=te, total_saida=ts, total_saldo=tsal, chart_labels=json.dumps(lbs), chart_entrada=json.dumps(e), chart_saida=json.dumps(s), chart_saldo=json.dumps(sl))
+    return render_template('relatorio.html',
+        active_page='relatorio',
+        user=current_user.username,
+        ano_atual=ano,
+        relatorio_anual_data=res,
+        total_entrada=te,
+        total_saida=ts,
+        total_saldo=tsal,
+        chart_labels=json.dumps(lbs),
+        chart_entrada=json.dumps(e),
+        chart_saida=json.dumps(s),
+        chart_saldo=json.dumps(sl)
+    )
 
 # --- BACKUP E RESTAURAÇÃO ---
 @app.route('/backup_json')
@@ -1780,7 +1374,7 @@ def login():
         else:
             flash('Usuário ou senha inválidos.', 'danger')
     
-    return render_template_string(LOGIN_TEMPLATE, mode='login')
+    return render_template('login.html', mode='login')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -1809,7 +1403,7 @@ def register():
             flash('Conta criada com sucesso! Faça login.', 'success')
             return redirect(url_for('login'))
     
-    return render_template_string(LOGIN_TEMPLATE, mode='register')
+    return render_template('login.html', mode='register')
 
 @app.route('/logout')
 @login_required
@@ -1823,91 +1417,7 @@ def logout():
 # ============================================
 # TEMPLATE DE LOGIN/REGISTRO
 # ============================================
-LOGIN_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'Login' if mode == 'login' else 'Registro' }} - Controle Financeiro</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .login-container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px; }
-        .login-header { text-align: center; margin-bottom: 30px; }
-        .login-header h1 { color: #2c3e50; font-size: 1.8em; margin-bottom: 10px; }
-        .login-header p { color: #7f8c8d; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; color: #2c3e50; font-weight: 600; }
-        .form-control { width: 100%; padding: 12px 15px; border: 2px solid #eee; border-radius: 8px; font-size: 1em; transition: border-color 0.3s; }
-        .form-control:focus { outline: none; border-color: #3498db; }
-        .btn-primary { width: 100%; padding: 14px; background: #2c3e50; color: white; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: background 0.3s; }
-        .btn-primary:hover { background: #34495e; }
-        .alert { padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
-        .alert.success { background: #d4edda; color: #155724; }
-        .alert.danger { background: #f8d7da; color: #721c24; }
-        .alert.warning { background: #fff3cd; color: #856404; }
-        .alert.info { background: #d1ecf1; color: #0c5460; }
-        .login-footer { text-align: center; margin-top: 20px; }
-        .login-footer a { color: #3498db; text-decoration: none; font-weight: 600; }
-        .login-footer a:hover { text-decoration: underline; }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <div class="login-header">
-            <h1><i class="fas fa-wallet"></i> Controle Financeiro</h1>
-            <p>{{ 'Acesse sua conta' if mode == 'login' else 'Crie sua conta' }}</p>
-        </div>
-        
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for cat, msg in messages %}
-                    <div class="alert {{ cat }}">{{ msg }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
-        {% if mode == 'login' %}
-        <form method="POST">
-            <div class="form-group">
-                <label><i class="fas fa-user"></i> Usuário</label>
-                <input type="text" name="username" class="form-control" required autofocus>
-            </div>
-            <div class="form-group">
-                <label><i class="fas fa-lock"></i> Senha</label>
-                <input type="password" name="password" class="form-control" required>
-            </div>
-            <button type="submit" class="btn-primary">Entrar</button>
-        </form>
-        <div class="login-footer">
-            <p>Não tem conta? <a href="{{ url_for('register') }}">Registre-se</a></p>
-        </div>
-        {% else %}
-        <form method="POST">
-            <div class="form-group">
-                <label><i class="fas fa-user"></i> Usuário</label>
-                <input type="text" name="username" class="form-control" required autofocus>
-            </div>
-            <div class="form-group">
-                <label><i class="fas fa-lock"></i> Senha</label>
-                <input type="password" name="password" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label><i class="fas fa-lock"></i> Confirmar Senha</label>
-                <input type="password" name="confirm" class="form-control" required>
-            </div>
-            <button type="submit" class="btn-primary">Criar Conta</button>
-        </form>
-        <div class="login-footer">
-            <p>Já tem conta? <a href="{{ url_for('login') }}">Faça login</a></p>
-        </div>
-        {% endif %}
-    </div>
-</body>
-</html>
-"""
+# Template movido para templates/login.html
 
 
 # ============================================

@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório Anual - Controle Financeiro{% endblock %}
+
+{% block page_title %}Relatório Anual{% endblock %}
+{% block page_subtitle %}Análise financeira de {{ ano_atual }}{% endblock %}
+
+{% block navbar_extra %}
+<form action="{{ url_for('relatorio_anual') }}" method="GET" class="d-flex gap-2 me-3">
+    <input type="number" name="filtro_ano" class="form-control" value="{{ ano_atual }}" min="2020" max="2030" style="width: 100px;">
+    <button class="btn btn-primary" type="submit">
+        <i class="fas fa-filter"></i>
+    </button>
+</form>
+{% endblock %}
+
+{% block content %}
+<!-- Summary Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card entrada">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="stat-label mb-1">Total Entradas</p>
+                        <h4 class="stat-value privacy-mask mb-0">R$ {{ "%.2f"|format(total_entrada) }}</h4>
+                        <small class="text-muted">Ano {{ ano_atual }}</small>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card saida">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="stat-label mb-1">Total Saídas</p>
+                        <h4 class="stat-value privacy-mask mb-0">R$ {{ "%.2f"|format(total_saida) }}</h4>
+                        <small class="text-muted">Ano {{ ano_atual }}</small>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card saldo">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="stat-label mb-1">Saldo Anual</p>
+                        <h4 class="stat-value privacy-mask mb-0 text-{{ 'success' if total_saldo >= 0 else 'danger' }}">
+                            R$ {{ "%.2f"|format(total_saldo) }}
+                        </h4>
+                        <small class="text-muted">Ano {{ ano_atual }}</small>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Annual Chart -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-chart-bar me-2"></i>Evolução Mensal - {{ ano_atual }}
+    </div>
+    <div class="card-body">
+        <div style="height: 350px;">
+            <canvas id="annualChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Data Table -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-table me-2"></i>Dados Mensais
+    </div>
+    <div class="card-body p-0">
+        <!-- Desktop Table View -->
+        <div class="table-responsive desktop-table">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Mês</th>
+                        <th class="text-end">Entradas</th>
+                        <th class="text-end">Saídas</th>
+                        <th class="text-end">Saldo</th>
+                        <th style="width: 200px;">Evolução</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in relatorio_anual_data %}
+                    <tr>
+                        <td>
+                            <strong>{{ r.Periodo }}</strong>
+                        </td>
+                        <td class="text-end privacy-mask text-success">
+                            R$ {{ "%.2f"|format(r.Entrada) }}
+                        </td>
+                        <td class="text-end privacy-mask text-danger">
+                            R$ {{ "%.2f"|format(r.Saida) }}
+                        </td>
+                        <td class="text-end privacy-mask fw-bold text-{{ 'success' if r.Saldo >= 0 else 'danger' }}">
+                            R$ {{ "%.2f"|format(r.Saldo) }}
+                        </td>
+                        <td>
+                            {% set max_val = total_entrada if total_entrada > total_saida else total_saida %}
+                            {% set entrada_pct = (r.Entrada / max_val * 100) if max_val > 0 else 0 %}
+                            {% set saida_pct = (r.Saida / max_val * 100) if max_val > 0 else 0 %}
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-success" style="width: {{ entrada_pct }}%" 
+                                     title="Entrada: R$ {{ '%.2f'|format(r.Entrada) }}"></div>
+                                <div class="progress-bar bg-danger" style="width: {{ saida_pct }}%" 
+                                     title="Saída: R$ {{ '%.2f'|format(r.Saida) }}"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="table-dark">
+                        <th>TOTAL</th>
+                        <th class="text-end privacy-mask">R$ {{ "%.2f"|format(total_entrada) }}</th>
+                        <th class="text-end privacy-mask">R$ {{ "%.2f"|format(total_saida) }}</th>
+                        <th class="text-end privacy-mask">R$ {{ "%.2f"|format(total_saldo) }}</th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <!-- Mobile Cards View -->
+        <div class="mobile-transaction-cards p-3">
+            {% for r in relatorio_anual_data %}
+            <div class="mobile-transaction-card {{ 'entrada' if r.Saldo >= 0 else 'saida' }}">
+                <div class="transaction-header">
+                    <div class="transaction-desc">
+                        <strong>{{ r.Periodo }}</strong>
+                    </div>
+                    <div class="transaction-valor privacy-mask text-{{ 'success' if r.Saldo >= 0 else 'danger' }}">
+                        R$ {{ "%.2f"|format(r.Saldo) }}
+                    </div>
+                </div>
+                <div class="transaction-meta">
+                    <span class="text-success"><i class="fas fa-arrow-up"></i> R$ {{ "%.0f"|format(r.Entrada) }}</span>
+                    <span class="text-danger"><i class="fas fa-arrow-down"></i> R$ {{ "%.0f"|format(r.Saida) }}</span>
+                </div>
+                <div class="progress mt-2" style="height: 8px;">
+                    {% set max_val = total_entrada if total_entrada > total_saida else total_saida %}
+                    {% set entrada_pct = (r.Entrada / max_val * 100) if max_val > 0 else 0 %}
+                    {% set saida_pct = (r.Saida / max_val * 100) if max_val > 0 else 0 %}
+                    <div class="progress-bar bg-success" style="width: {{ entrada_pct }}%"></div>
+                    <div class="progress-bar bg-danger" style="width: {{ saida_pct }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <!-- Total Card -->
+            <div class="mobile-transaction-card" style="background: var(--bg-secondary); border-width: 2px;">
+                <div class="transaction-header">
+                    <div class="transaction-desc">
+                        <strong>TOTAL {{ ano_atual }}</strong>
+                    </div>
+                    <div class="transaction-valor privacy-mask text-{{ 'success' if total_saldo >= 0 else 'danger' }}">
+                        R$ {{ "%.2f"|format(total_saldo) }}
+                    </div>
+                </div>
+                <div class="transaction-meta">
+                    <span class="text-success"><i class="fas fa-arrow-up"></i> R$ {{ "%.0f"|format(total_entrada) }}</span>
+                    <span class="text-danger"><i class="fas fa-arrow-down"></i> R$ {{ "%.0f"|format(total_saida) }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('annualChart');
+    if (ctx) {
+        new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [
+                    {
+                        label: 'Entradas',
+                        data: {{ chart_entrada|safe }},
+                        backgroundColor: '#198754',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Saídas',
+                        data: {{ chart_saida|safe }},
+                        backgroundColor: '#dc3545',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Saldo',
+                        data: {{ chart_saldo|safe }},
+                        backgroundColor: '#0d6efd',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': R$ ' + context.raw.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'R$ ' + value.toLocaleString('pt-BR');
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

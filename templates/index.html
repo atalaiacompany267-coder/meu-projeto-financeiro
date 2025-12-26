@@ -1,0 +1,495 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Controle Financeiro{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}{{ mes_extenso }} {{ ano_extenso }}{% endblock %}
+
+{% block navbar_extra %}
+<form action="{{ url_for('dashboard') }}" method="GET" class="d-flex gap-2 me-3">
+    <input type="month" name="filtro_mes" class="form-control" value="{{ filtro_atual }}" style="width: 160px;">
+    <button class="btn btn-primary" type="submit">
+        <i class="fas fa-filter"></i>
+    </button>
+</form>
+{% endblock %}
+
+{% block content %}
+<!-- Stats Cards - Sticky on Mobile -->
+<div class="sticky-stats">
+    <div class="row g-2 g-md-4 mb-4">
+        <div class="col-4 col-md-4">
+            <div class="card stat-card entrada">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="stat-label mb-1">Entradas</p>
+                            <h3 class="stat-value privacy-mask mb-0">R$ {{ "%.2f"|format(entrada) }}</h3>
+                            <small class="text-{{ 'success' if trend_ent_pct > 0 else 'danger' }} d-none d-md-inline">
+                                <i class="fas fa-arrow-{{ 'up' if trend_ent_pct > 0 else 'down' }}"></i>
+                                {{ "%.0f"|format(trend_ent_pct|abs) }}%
+                            </small>
+                        </div>
+                        <div class="stat-icon d-none d-sm-flex">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-4 col-md-4">
+            <div class="card stat-card saida">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="stat-label mb-1">Saídas</p>
+                            <h3 class="stat-value privacy-mask mb-0">R$ {{ "%.2f"|format(saida|abs) }}</h3>
+                            <small class="text-{{ 'danger' if trend_sai_pct > 0 else 'success' }} d-none d-md-inline">
+                                <i class="fas fa-arrow-{{ 'up' if trend_sai_pct > 0 else 'down' }}"></i>
+                                {{ "%.0f"|format(trend_sai_pct|abs) }}%
+                            </small>
+                        </div>
+                        <div class="stat-icon d-none d-sm-flex">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-4 col-md-4">
+            <div class="card stat-card saldo">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="stat-label mb-1">Saldo</p>
+                            <h3 class="stat-value privacy-mask mb-0 text-{{ 'success' if saldo >= 0 else 'danger' }}">
+                                R$ {{ "%.2f"|format(saldo) }}
+                            </h3>
+                            <small class="text-muted d-none d-md-inline">Média: R$ {{ "%.0f"|format(avg_ent - avg_sai) }}</small>
+                        </div>
+                        <div class="stat-icon d-none d-sm-flex">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <!-- Category Chart -->
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="fas fa-chart-pie me-2"></i>Gastos por Categoria
+            </div>
+            <div class="card-body">
+                <div style="height: 250px;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+                
+                <!-- Macro Summary (50-30-20) -->
+                <div class="mt-4 pt-3 border-top">
+                    <h6 class="mb-3">Regra 50-30-20</h6>
+                    {% set tot = entrada if entrada > 0 else 1 %}
+                    
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Essenciais (50%)</span>
+                            <span class="privacy-mask">{{ "%.0f"|format((macro_vals['ESSENCIAIS']/tot)*100) }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-danger" style="width: {{ (macro_vals['ESSENCIAIS']/tot)*100 }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Estilo de Vida (30%)</span>
+                            <span class="privacy-mask">{{ "%.0f"|format((macro_vals['ESTILO_VIDA']/tot)*100) }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-warning" style="width: {{ (macro_vals['ESTILO_VIDA']/tot)*100 }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Investimentos (20%)</span>
+                            <span class="privacy-mask">{{ "%.0f"|format((macro_vals['INVESTIMENTOS']/tot)*100) }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" style="width: {{ (macro_vals['INVESTIMENTOS']/tot)*100 }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Daily Chart -->
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="fas fa-chart-bar me-2"></i>Movimentação Diária
+            </div>
+            <div class="card-body">
+                <div style="height: 340px;">
+                    <canvas id="dailyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Transaction Form -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-plus-circle me-2"></i>Novo Lançamento
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('add_lancamento') }}" method="POST">
+            <div class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label">Data</label>
+                    <input type="text" name="data" class="form-control date-mask" value="{{ hoje_br }}" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Tipo</label>
+                    <select name="tipo" class="form-select">
+                        <option value="SAIDA">Saída</option>
+                        <option value="ENTRADA">Entrada</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Categoria</label>
+                    <input name="categoria" class="form-control" list="categorias-list" required placeholder="Ex: Mercado">
+                    <datalist id="categorias-list">
+                        {% for cat in all_categories %}
+                        <option value="{{ cat }}">
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Classificação</label>
+                    <select name="classificacao" class="form-select">
+                        <option value="Essenciais">Essenciais</option>
+                        <option value="Estilo de Vida">Estilo de Vida</option>
+                        <option value="Investimentos">Investimentos</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Descrição</label>
+                    <input type="text" name="descricao" class="form-control" placeholder="Opcional">
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label">Valor</label>
+                    <input type="number" step="0.01" name="valor" class="form-control" required>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Transactions Section -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="fas fa-list me-2"></i>Lançamentos</span>
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+            <input type="text" id="search-input" class="form-control form-control-sm" placeholder="Buscar..." style="width: 150px;">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-secondary btn-filter btn-sm active" data-filter="all">Todos</button>
+                <button type="button" class="btn btn-outline-secondary btn-filter btn-sm" data-filter="ENTRADA"><span class="d-none d-sm-inline">Entradas</span><span class="d-sm-none">+</span></button>
+                <button type="button" class="btn btn-outline-secondary btn-filter btn-sm" data-filter="SAIDA"><span class="d-none d-sm-inline">Saídas</span><span class="d-sm-none">-</span></button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <!-- Desktop Table View -->
+        <div class="table-responsive desktop-table">
+            <table class="table table-hover mb-0" id="lancamentos-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;" class="text-center">
+                            <i class="fas fa-check-circle"></i>
+                        </th>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th>Categoria</th>
+                        <th>Descrição</th>
+                        <th class="text-end">Valor</th>
+                        <th class="text-center" style="width: 140px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in dados_exibicao %}
+                    <tr class="{% if l.Status == 'Pago' %}row-pago{% endif %}" 
+                        data-tipo="{{ l.Tipo }}" 
+                        data-categoria="{{ l.Categoria|lower }}" 
+                        data-descricao="{{ l.Descrição|lower }}">
+                        <td class="text-center">
+                            <a href="{{ url_for('toggle_status', id=l.ID, filtro_mes=filtro_atual) }}" 
+                               class="btn-status {% if l.Status == 'Pago' %}pago{% endif %}">
+                                <i class="fas fa-check"></i>
+                            </a>
+                        </td>
+                        <td>{{ l.Data }}</td>
+                        <td>
+                            <span class="badge badge-{{ 'entrada' if l.Tipo == 'ENTRADA' else 'saida' }}">
+                                {{ l.Tipo }}
+                            </span>
+                        </td>
+                        <td>{{ l.Categoria }}</td>
+                        <td>{{ l.Descrição }}</td>
+                        <td class="text-end privacy-mask fw-bold text-{{ 'success' if l.Valor > 0 else 'danger' }}">
+                            R$ {{ "%.2f"|format(l.Valor|abs) }}
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ url_for('pin_lancamento', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
+                               class="btn btn-action btn-outline-warning btn-pin {% if l.Fixado == 'Sim' %}fixado{% endif %}" 
+                               title="Fixar">
+                                <i class="fas fa-thumbtack"></i>
+                            </a>
+                            <a href="{{ url_for('edit_lancamento_form', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
+                               class="btn btn-action btn-outline-primary" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{{ url_for('delete_lancamento', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
+                               class="btn btn-action btn-outline-danger" 
+                               onclick="return confirm('Excluir este lançamento?')" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                            Nenhum lançamento neste mês
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Mobile Cards View -->
+        <div class="mobile-transaction-cards p-3" id="mobile-cards">
+            {% for l in dados_exibicao %}
+            <div class="mobile-transaction-card {{ 'entrada' if l.Tipo == 'ENTRADA' else 'saida' }} {% if l.Status == 'Pago' %}opacity-75{% endif %}"
+                 data-tipo="{{ l.Tipo }}" 
+                 data-categoria="{{ l.Categoria|lower }}" 
+                 data-descricao="{{ l.Descrição|lower }}">
+                <div class="transaction-header">
+                    <div class="transaction-desc">
+                        {{ l.Descrição or l.Categoria }}
+                        {% if l.Fixado == 'Sim' %}
+                        <i class="fas fa-thumbtack text-warning ms-1" style="font-size: 0.7rem;"></i>
+                        {% endif %}
+                    </div>
+                    <div class="transaction-valor privacy-mask text-{{ 'success' if l.Valor > 0 else 'danger' }}">
+                        {{ '+' if l.Valor > 0 else '-' }}R$ {{ "%.2f"|format(l.Valor|abs) }}
+                    </div>
+                </div>
+                <div class="transaction-meta">
+                    <span><i class="fas fa-calendar"></i> {{ l.Data }}</span>
+                    <span><i class="fas fa-tag"></i> {{ l.Categoria }}</span>
+                    {% if l.Status == 'Pago' %}
+                    <span class="text-success"><i class="fas fa-check-circle"></i> Pago</span>
+                    {% endif %}
+                </div>
+                <div class="transaction-actions">
+                    <a href="{{ url_for('toggle_status', id=l.ID, filtro_mes=filtro_atual) }}" 
+                       class="btn btn-sm btn-outline-{{ 'success' if l.Status != 'Pago' else 'secondary' }}" 
+                       title="{{ 'Marcar como pago' if l.Status != 'Pago' else 'Marcar como pendente' }}">
+                        <i class="fas fa-check"></i>
+                    </a>
+                    <a href="{{ url_for('pin_lancamento', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
+                       class="btn btn-sm btn-outline-warning" title="Fixar">
+                        <i class="fas fa-thumbtack"></i>
+                    </a>
+                    <a href="{{ url_for('edit_lancamento_form', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
+                       class="btn btn-sm btn-outline-primary" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{{ url_for('delete_lancamento', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
+                       class="btn btn-sm btn-outline-danger" 
+                       onclick="return confirm('Excluir?')" title="Excluir">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                Nenhum lançamento neste mês
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% if ask_to_generate %}
+<!-- Modal para gerar fixos -->
+<div class="modal fade" id="gerarFixosModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Gerar Lançamentos Fixos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Deseja gerar os lançamentos fixos para <strong>{{ mes_extenso }}</strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Agora não</button>
+                <a href="{{ url_for('gerar_fixos_cmd', mes=filtro_atual) }}" class="btn btn-success">
+                    <i class="fas fa-sync me-1"></i> Gerar Agora
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ========================================
+    // CHARTS
+    // ========================================
+    const chartColors = ['#dc3545', '#0d6efd', '#198754', '#ffc107', '#6f42c1', '#20c997', '#fd7e14', '#6c757d'];
+    
+    // Category Chart
+    const categoryCtx = document.getElementById('categoryChart');
+    if (categoryCtx) {
+        new Chart(categoryCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: {{ chart_cats|safe }},
+                datasets: [{
+                    data: {{ chart_vals|safe }},
+                    backgroundColor: chartColors,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+    }
+    
+    // Daily Chart
+    const dailyCtx = document.getElementById('dailyChart');
+    if (dailyCtx) {
+        new Chart(dailyCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: {{ chart_days|safe }},
+                datasets: [
+                    {
+                        label: 'Entradas',
+                        data: {{ chart_daily_in|safe }},
+                        backgroundColor: '#198754'
+                    },
+                    {
+                        label: 'Saídas',
+                        data: {{ chart_daily_out|safe }},
+                        backgroundColor: '#dc3545'
+                    },
+                    {
+                        label: 'Saldo',
+                        data: {{ chart_daily_bal|safe }},
+                        backgroundColor: '#0d6efd'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    }
+    
+    // ========================================
+    // TABLE & MOBILE CARDS FILTER & SEARCH
+    // ========================================
+    const table = document.getElementById('lancamentos-table');
+    const mobileCards = document.getElementById('mobile-cards');
+    const searchInput = document.getElementById('search-input');
+    const filterBtns = document.querySelectorAll('.btn-filter');
+    
+    // Get all filterable items (table rows and mobile cards)
+    const tableRows = table ? Array.from(table.querySelectorAll('tbody tr[data-tipo]')) : [];
+    const mobileItems = mobileCards ? Array.from(mobileCards.querySelectorAll('.mobile-transaction-card[data-tipo]')) : [];
+    
+    let currentFilter = 'all';
+    
+    function applyFilters() {
+        const searchText = searchInput ? searchInput.value.toLowerCase() : '';
+        
+        // Filter table rows
+        tableRows.forEach(row => {
+            const tipo = row.dataset.tipo;
+            const categoria = row.dataset.categoria || '';
+            const descricao = row.dataset.descricao || '';
+            
+            const matchesFilter = currentFilter === 'all' || tipo === currentFilter;
+            const matchesSearch = !searchText || categoria.includes(searchText) || descricao.includes(searchText);
+            
+            row.style.display = matchesFilter && matchesSearch ? '' : 'none';
+        });
+        
+        // Filter mobile cards
+        mobileItems.forEach(card => {
+            const tipo = card.dataset.tipo;
+            const categoria = card.dataset.categoria || '';
+            const descricao = card.dataset.descricao || '';
+            
+            const matchesFilter = currentFilter === 'all' || tipo === currentFilter;
+            const matchesSearch = !searchText || categoria.includes(searchText) || descricao.includes(searchText);
+            
+            card.style.display = matchesFilter && matchesSearch ? '' : 'none';
+        });
+    }
+    
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentFilter = this.dataset.filter;
+            applyFilters();
+        });
+    });
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+    }
+    
+    {% if ask_to_generate %}
+    // Show modal to generate fixed expenses
+    const modal = new bootstrap.Modal(document.getElementById('gerarFixosModal'));
+    modal.show();
+    {% endif %}
+});
+</script>
+{% endblock %}
