@@ -1,0 +1,182 @@
+{
+    "1": {
+        "user": "Daniel5242",
+        "tipo": "ENTRADA",
+        "categoria": "Pagamento",
+        "descricao": "Pagamento Daniel",
+        "valor": 1706.35,
+        "dia_fixo": 5,
+        "classificacao": "Essenciais"
+    },
+    "2": {
+        "user": "Daniel5242",
+        "tipo": "ENTRADA",
+        "categoria": "Pagamento",
+        "descricao": "Pagamento Jhennifer",
+        "valor": 1001.61,
+        "dia_fixo": 5,
+        "classificacao": "Essenciais"
+    },
+    "3": {
+        "user": "Daniel5242",
+        "tipo": "ENTRADA",
+        "categoria": "Vale",
+        "descricao": "Vale Daniel",
+        "valor": 1640.0,
+        "dia_fixo": 20,
+        "classificacao": "Essenciais"
+    },
+    "4": {
+        "user": "Daniel5242",
+        "tipo": "ENTRADA",
+        "categoria": "Vale",
+        "descricao": "Vale Jhennifer",
+        "valor": 930.16,
+        "dia_fixo": 20,
+        "classificacao": "Essenciais"
+    },
+    "5": {
+        "user": "Daniel5242",
+        "tipo": "SAIDA",
+        "categoria": "D\u00edzimo",
+        "descricao": "D\u00edzimo Do Senhor ",
+        "valor": 800.0,
+        "dia_fixo": 5,
+        "classificacao": "Investimentos"
+    },
+    "6": {
+        "user": "Daniel5242",
+        "tipo": "SAIDA",
+        "categoria": "Cart\u00e3o",
+        "descricao": "Cart\u00e3o De Credito",
+        "valor": 150.0,
+        "dia_fixo": 5,
+        "classificacao": "Essenciais"
+    },
+    "7": {
+        "user": "Daniel5242",
+        "tipo": "SAIDA",
+        "categoria": "Quitar",
+        "descricao": "Quitar D\u00edvidas",
+        "valor": 300.0,
+        "dia_fixo": 5,
+        "classificacao": "Essenciais"
+    },
+    "8": {
+        "user": "Daniel5242",
+        "tipo": "SAIDA",
+        "categoria": "Desfrute",
+        "descricao": "Desfrute Jhennifer",
+        "valor": 300.0,
+        "dia_fixo": 5,
+        "classificacao": "Estilo de Vida"
+    },
+    "9": {
+        "user": "Daniel5242",
+        "tipo": "SAIDA",
+        "categoria": "Internet",
+        "descricao": "Internet",
+        "valor": 99.9,
+        "dia_fixo": 5,
+        "classificacao": "Estilo de Vida"
+    },
+    "10": {
+        "user": "Daniel5242",
+        "tipo": "SAIDA",
+        "categoria": "Agua",
+        "descricao": "Agua",
+        "valor": 68.74,
+        "dia_fixo": 5,
+        "classificacao": "Essenciais"
+    },
+    "11": {
+        "user": "Daniel5242",
+        "tipo": "SAIDA",
+        "categoria": "Aluguel",
+        "descricao": "Aluguel",
+        "valor": 800.0,
+        "dia_fixo": 5,
+        "classificacao": "Essenciais"
+    },
+    "12": {
+        "user": "Daniel5242",
+        "tipo": "SAIDA",
+        "categoria": "Energia",
+        "descricao": "Energia El\u00e9trica",
+        "valor": 136.49,
+        "dia_fixo": 5,
+        "classificacao": "Essenciais"
+    },
+    "13": {
+        "user": "Daniel5242",
+        "tipo": "SAIDA",
+        "categoria": "Cons\u00f3rcio",
+        "descricao": "Cons\u00f3rcio Moto",
+        "valor": 396.9,
+        "dia_fixo": 20,
+        "classificacao": "Estilo de Vida"
+    },
+    "14": {
+        "user": "Daniel5242",
+        "tipo": "SAIDA",
+        "categoria": "Maquina",
+        "descricao": "Maquina De Lavar",
+        "valor": 203.14,
+        "dia_fixo": 20,
+        "classificacao": "Estilo de Vida"
+    },
+    "15": {
+        "user": "Daniel5242",
+        "tipo": "SAIDA",
+        "categoria": "Curso",
+        "descricao": "Curso Teologia",
+        "valor": 85.0,
+        "dia_fixo": 20,
+        "classificacao": "Estilo de Vida"
+    },
+    "16": {
+        "user": "Daniel5242",
+        "tipo": "SAIDA",
+        "categoria": "Supermercado",
+        "descricao": "Alimenta\u00e7\u00e3o",
+        "valor": 700.0,
+        "dia_fixo": 20,
+        "classificacao": "Essenciais"
+    },
+    "17": {
+        "user": "Daniel5242",
+        "tipo": "SAIDA",
+        "categoria": "Liberdade",
+        "descricao": "Liberdade Financeira",
+        "valor": 500.0,
+        "dia_fixo": 20,
+        "classificacao": "Investimentos"
+    },
+    "19": {
+        "user": "Daniel5242",
+        "tipo": "SAIDA",
+        "categoria": "Desfrute",
+        "descricao": "Desfrute Casal",
+        "valor": 100.0,
+        "dia_fixo": 20,
+        "classificacao": "Estilo de Vida"
+    },
+    "20": {
+        "user": "Daniel5242",
+        "tipo": "SAIDA",
+        "categoria": "Reserva ",
+        "descricao": "Reserva De Emergencia",
+        "valor": 300.0,
+        "dia_fixo": 20,
+        "classificacao": "Investimentos"
+    },
+    "21": {
+        "user": "Daniel5242",
+        "tipo": "SAIDA",
+        "categoria": "Viagem ",
+        "descricao": "Viagem Final Ano",
+        "valor": 150.0,
+        "dia_fixo": 20,
+        "classificacao": "Estilo de Vida"
+    }
+}
