@@ -1189,7 +1189,7 @@
                 flex: 1 1 0px !important;
                 min-width: 0 !important;
                 height: 100%;
-                min-height: 100px;
+                min-height: 70px !important;
                 display: flex;
                 flex-direction: column;
                 width: 100% !important;
@@ -1202,32 +1202,35 @@
                 min-width: 0 !important;
             }
             
-            /* Smaller stat cards on mobile */
+            /* Smaller stat cards on mobile - compact */
             .stat-card .card-body {
-                padding: 0.5rem;
+                padding: 8px 5px !important;
                 flex: 1;
                 display: flex;
                 flex-direction: column;
-                justify-content: space-between;
+                justify-content: center !important;
+                gap: 2px;
             }
             
             .stat-card .stat-value {
-                font-size: 1.1rem;
+                font-size: 1rem !important;
                 word-break: break-word;
-                line-height: 1.2;
+                line-height: 1.1 !important;
+                margin: 0 !important;
             }
             
             .stat-card .stat-label {
-                font-size: 0.65rem;
+                font-size: 0.6rem !important;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                margin: 0 !important;
             }
             
             .stat-card .stat-icon {
-                width: 32px;
-                height: 32px;
-                font-size: 0.9rem;
+                width: 24px !important;
+                height: 24px !important;
+                font-size: 0.75rem !important;
             }
             
             .stat-card small {
