@@ -15,10 +15,16 @@ app.secret_key = 'chave_financeira_v20_final_sync_fix_chart_v4_backup_completo'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=365)
 
 # ============================================
-# CONFIGURAÇÃO DO BANCO DE DADOS
+# CONFIGURAÇÃO DO BANCO DE DADOS (PostgreSQL Neon)
 # ============================================
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///financeiro.db'
+import os
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://neondb_owner:npg_NA4wBru6LHOZ@ep-jolly-lab-ahhyx7m1-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require')
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_recycle': 300,
+    'pool_pre_ping': True,
+}
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
