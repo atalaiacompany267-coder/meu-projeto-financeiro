@@ -1162,7 +1162,7 @@
                 z-index: 50;
                 background: var(--bg-primary);
                 margin: -1rem -1rem 1rem -1rem;
-                padding: 1rem;
+                padding: 0.75rem;
                 box-shadow: var(--shadow-sm);
             }
             
@@ -1170,7 +1170,7 @@
             .sticky-stats .row {
                 display: flex !important;
                 flex-wrap: nowrap !important;
-                gap: 0.5rem;
+                gap: 8px !important;
                 margin: 0 !important;
                 width: 100% !important;
                 justify-content: space-between !important;
@@ -1179,8 +1179,8 @@
             .sticky-stats .col-4 {
                 flex: 1 1 0px !important;
                 min-width: 0 !important;
-                max-width: 33.333% !important;
-                width: 33.333% !important;
+                max-width: none !important;
+                width: auto !important;
                 padding: 0 !important;
             }
             
@@ -1188,8 +1188,8 @@
             .sticky-stats .stat-card {
                 flex: 1 1 0px !important;
                 min-width: 0 !important;
-                height: 100%;
-                min-height: 70px !important;
+                height: auto !important;
+                min-height: auto !important;
                 display: flex;
                 flex-direction: column;
                 width: 100% !important;
@@ -1202,25 +1202,25 @@
                 min-width: 0 !important;
             }
             
-            /* Smaller stat cards on mobile - compact */
+            /* Smaller stat cards on mobile - compact with all info */
             .stat-card .card-body {
-                padding: 8px 5px !important;
+                padding: 8px 4px !important;
                 flex: 1;
                 display: flex;
                 flex-direction: column;
-                justify-content: center !important;
-                gap: 2px;
+                justify-content: flex-start !important;
+                gap: 1px;
             }
             
             .stat-card .stat-value {
-                font-size: 1rem !important;
+                font-size: 0.95rem !important;
                 word-break: break-word;
                 line-height: 1.1 !important;
                 margin: 0 !important;
             }
             
             .stat-card .stat-label {
-                font-size: 0.6rem !important;
+                font-size: 0.55rem !important;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -1228,18 +1228,23 @@
             }
             
             .stat-card .stat-icon {
-                width: 24px !important;
-                height: 24px !important;
-                font-size: 0.75rem !important;
+                display: none !important;
             }
             
+            /* MOSTRAR porcentagem e média no mobile */
             .stat-card small {
-                font-size: 0.6rem;
+                display: block !important;
+                font-size: 0.6rem !important;
+                line-height: 1.1 !important;
+                margin: 0 !important;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             
-            /* Hide trend arrows on small screens */
-            .stat-card small {
-                display: none;
+            /* Remove classes que escondem no mobile */
+            .stat-card .d-none.d-md-inline {
+                display: inline !important;
             }
             
             /* Compact form on mobile */
