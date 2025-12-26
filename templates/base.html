@@ -1303,20 +1303,85 @@
             
             /* Top navbar mobile */
             .top-navbar {
-                flex-wrap: wrap;
-                gap: 0.5rem;
+                flex-wrap: nowrap;
+                gap: 0.25rem;
                 padding: 0.5rem 0.75rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
             }
             
-            .navbar-actions {
+            /* Left section (menu + title) */
+            .top-navbar > .d-flex {
+                flex: 0 0 auto;
+                align-items: center;
                 gap: 0.5rem;
+                min-width: 0;
             }
             
-            .btn-theme-toggle,
-            .btn-privacy-toggle {
+            .mobile-menu-toggle {
+                flex-shrink: 0;
                 width: 36px;
                 height: 36px;
-                font-size: 0.9rem;
+                padding: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            /* Title and subtitle - smaller on mobile */
+            .page-title {
+                font-size: 1.1rem !important;
+                white-space: nowrap;
+                margin: 0;
+                line-height: 1.2;
+            }
+            
+            .page-subtitle {
+                font-size: 0.7rem !important;
+                white-space: nowrap;
+                margin: 0;
+                line-height: 1.2;
+            }
+            
+            /* Right section (form + icons) - group together */
+            .navbar-actions {
+                display: flex;
+                align-items: center;
+                gap: 0.35rem;
+                flex-shrink: 0;
+            }
+            
+            /* Month filter form */
+            .navbar-actions form {
+                display: flex;
+                gap: 0.25rem;
+                margin: 0;
+            }
+            
+            .navbar-actions form input[type="month"] {
+                width: 110px !important;
+                font-size: 0.75rem;
+                padding: 0.3rem 0.4rem;
+                height: 32px;
+            }
+            
+            .navbar-actions form .btn {
+                padding: 0.3rem 0.5rem;
+                font-size: 0.85rem;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            /* Icons - smaller and grouped */
+            .btn-theme-toggle,
+            .btn-privacy-toggle {
+                width: 32px;
+                height: 32px;
+                font-size: 0.85rem;
+                flex-shrink: 0;
             }
         }
         
