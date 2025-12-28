@@ -1380,6 +1380,30 @@ def relatorio_anual():
         chart_saldo=json.dumps(sl)
     )
 
+# --- GERAR LANÇAMENTOS FIXOS MANUALMENTE ---
+@app.route('/gerar_fixos_manual')
+@login_required
+def gerar_fixos_manual():
+    """Gera lançamentos fixos manualmente para o mês selecionado"""
+    user_id = current_user.id
+    
+    # Obtém o mês atual do Dashboard (da sessão ou do banco)
+    filtro_mes = current_user.last_month_viewed or session.get('last_month') or datetime.now().strftime('%Y-%m')
+    
+    # Verifica se existem lançamentos fixos cadastrados
+    fixed_count = FixedExpense.query.filter_by(user_id=user_id).count()
+    if fixed_count == 0:
+        flash('Você não possui lançamentos fixos cadastrados. Acesse "Lançamentos Fixos" para criar.', 'warning')
+        return redirect(url_for('dashboard', filtro_mes=filtro_mes))
+    
+    # Gera os lançamentos fixos com force=True para ignorar o log
+    generate_monthly_entries(filtro_mes, user_id, force=True)
+    
+    # Mensagem de sucesso
+    flash('✅ Lançamentos fixos gerados com sucesso!', 'success')
+    
+    return redirect(url_for('dashboard', filtro_mes=filtro_mes))
+
 # --- BACKUP E RESTAURAÇÃO ---
 @app.route('/backup_json')
 @login_required

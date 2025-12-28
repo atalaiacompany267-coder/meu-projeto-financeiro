@@ -2931,6 +2931,11 @@
                         <i class="fas fa-cog"></i>
                     </button>
                     <div class="dropdown-actions-menu" id="actionsDropdown" style="background: #ffffff; border: 1px solid #dee2e6;">
+                        <a href="{{ url_for('gerar_fixos_manual') }}" class="dropdown-action-item" style="color: #000000 !important; opacity: 1 !important; visibility: visible !important;">
+                            <i class="fas fa-bolt" style="color: #555555 !important;"></i>
+                            <span style="color: #000000 !important; opacity: 1 !important;">Gerar Lançamentos Fixos</span>
+                        </a>
+                        <div class="dropdown-divider" style="background: #dee2e6;"></div>
                         <a href="{{ url_for('backup_json') }}" class="dropdown-action-item" style="color: #000000 !important; opacity: 1 !important; visibility: visible !important;">
                             <i class="fas fa-download" style="color: #555555 !important;"></i>
                             <span style="color: #000000 !important; opacity: 1 !important;">Exportar Backup</span>
@@ -3045,6 +3050,7 @@
             function updateDropdownColors(theme) {
                 const dropdownItems = document.querySelectorAll('.dropdown-action-item');
                 const dropdownMenu = document.getElementById('actionsDropdown');
+                const dropdownDividers = document.querySelectorAll('.dropdown-actions-menu .dropdown-divider');
                 
                 if (theme === 'dark') {
                     // Modo escuro: texto branco sobre fundo escuro
@@ -3071,6 +3077,10 @@
                         dropdownMenu.style.setProperty('background-color', '#1a1a1a', 'important');
                         dropdownMenu.style.setProperty('border-color', '#2d2d2d', 'important');
                     }
+                    dropdownDividers.forEach(divider => {
+                        divider.style.setProperty('background', '#2d2d2d', 'important');
+                        divider.style.setProperty('background-color', '#2d2d2d', 'important');
+                    });
                 } else {
                     // Modo claro: texto preto sobre fundo branco
                     dropdownItems.forEach(item => {
@@ -3096,6 +3106,10 @@
                         dropdownMenu.style.setProperty('background-color', '#ffffff', 'important');
                         dropdownMenu.style.setProperty('border-color', '#dee2e6', 'important');
                     }
+                    dropdownDividers.forEach(divider => {
+                        divider.style.setProperty('background', '#dee2e6', 'important');
+                        divider.style.setProperty('background-color', '#dee2e6', 'important');
+                    });
                 }
             }
             
