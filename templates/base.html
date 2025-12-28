@@ -109,13 +109,14 @@
             text-overflow: ellipsis !important;
         }
         
-        /* GRUPO DA DIREITA: Largura limitada */
+        /* GRUPO DA DIREITA: Ícones COLADOS */
         .navbar-actions {
             display: flex !important;
             align-items: center !important;
-            gap: 12px !important;
+            gap: 2px !important;
             flex-wrap: nowrap !important;
-            margin-left: auto !important;
+            margin-left: 0 !important;
+            margin-right: 5px !important;
             width: auto !important;
             max-width: max-content !important;
         }
@@ -1470,19 +1471,27 @@
         }
         
         /* ========================================
-           MODALS - CENTRALIZADO E OVERLAY
+           MODALS - CENTRALIZADO E OVERLAY - Z-INDEX ALTO
            ======================================== */
         /* Overlay escurecido */
         .modal-backdrop {
-            background-color: rgba(0, 0, 0, 0.6) !important;
+            background-color: rgba(0, 0, 0, 0.7) !important;
+            z-index: 10000 !important;
+            position: fixed !important;
         }
         
         [data-theme="dark"] .modal-backdrop {
-            background-color: rgba(0, 0, 0, 0.8) !important;
+            background-color: rgba(0, 0, 0, 0.85) !important;
         }
         
-        /* Modal centralizado */
+        /* Modal centralizado e clicável */
         .modal {
+            z-index: 10001 !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -1490,6 +1499,7 @@
         
         .modal-dialog {
             margin: 1rem;
+            position: relative !important;
         }
         
         .modal-dialog-centered {
@@ -2622,23 +2632,46 @@
             pointer-events: none !important;
         }
         
-        /* Modal Bootstrap - garantir funcionamento */
+        /* Modal Bootstrap - CORREÇÃO CRÍTICA z-index alto */
         .modal-backdrop {
-            z-index: 1040 !important;
+            z-index: 10000 !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background-color: rgba(0, 0, 0, 0.7) !important;
         }
         
         .modal {
-            z-index: 1050 !important;
+            z-index: 10001 !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
             pointer-events: auto !important;
         }
         
         .modal.show .modal-dialog {
             pointer-events: auto !important;
+            position: relative !important;
+            margin: auto !important;
         }
         
         .modal-content,
         .modal-content * {
             pointer-events: auto !important;
+        }
+        
+        .modal-content .btn,
+        .modal-content .btn-close {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+            z-index: 10002 !important;
         }
     </style>
     
@@ -2704,7 +2737,7 @@
     <!-- Main Content -->
     <main class="main-content">
         <!-- Top Navbar -->
-        <div class="top-navbar" style="display: flex !important; justify-content: flex-start !important; align-items: center !important; flex-wrap: nowrap !important;">
+        <div class="top-navbar" style="display: flex !important; justify-content: space-between !important; align-items: center !important; flex-wrap: nowrap !important; width: 100% !important;">
             <div class="d-flex align-items-center gap-3" style="flex: 0 0 auto !important;">
                 <!-- Menu Toggle Button (Desktop: Toggle Sidebar | Mobile: Overlay Menu) -->
                 <button class="mobile-menu-toggle" id="mobileMenuToggle" title="Menu">
@@ -2715,7 +2748,7 @@
                     <p class="page-subtitle">{% block page_subtitle %}{% endblock %}</p>
                 </div>
             </div>
-            <div class="navbar-actions" style="display: flex !important; align-items: center !important; gap: 10px !important; flex-wrap: nowrap !important; margin-left: auto !important;">
+            <div class="navbar-actions" style="display: flex !important; align-items: center !important; gap: 2px !important; flex-wrap: nowrap !important; margin-left: 0 !important; margin-right: 0 !important;">
                 <!-- 1️⃣ ÍCONE OLHO (Privacidade) -->
                 <button class="btn-privacy-toggle" id="btn-privacy" title="Modo Privacidade">
                     <i class="fas fa-eye"></i>

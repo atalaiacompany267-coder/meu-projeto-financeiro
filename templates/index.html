@@ -505,43 +505,48 @@
             font-size: 0.8rem !important;
         }
         
-        /* Ícones do cabeçalho ultra-próximos e deslocados para esquerda */
+        /* ÍCONES COLADOS - gap 2px, SEM margin-left: auto */
         .navbar-actions {
-            gap: 4px !important;
+            gap: 2px !important;
             margin-left: 0 !important;
-            margin-right: auto !important;
-            padding-right: 4px !important;
+            margin-right: 0 !important;
+            padding-right: 0 !important;
         }
         
         .top-navbar {
             justify-content: space-between !important;
             padding-left: 0.5rem !important;
             padding-right: 0.5rem !important;
+            width: 100% !important;
         }
         
         .top-navbar .d-flex.align-items-center.gap-3 {
-            gap: 6px !important;
+            gap: 4px !important;
             flex-shrink: 0 !important;
-            margin-right: 6px !important;
+            margin-right: 0 !important;
         }
         
         /* Botões menores no cabeçalho mobile */
         .btn-privacy-toggle,
         .btn-theme-toggle,
         .btn-actions-toggle {
-            padding: 0.3rem 0.45rem !important;
-            font-size: 0.85rem !important;
+            padding: 0.25rem 0.4rem !important;
+            font-size: 0.8rem !important;
+            width: 32px !important;
+            height: 32px !important;
+            min-width: 32px !important;
         }
         
         /* Form do filtro mais compacto */
         form[action*="dashboard"] {
-            gap: 4px !important;
+            gap: 2px !important;
         }
         
-        .navbar .month-selector {
-            max-width: 100px !important;
-            font-size: 0.75rem !important;
-            padding: 0.25rem 0.4rem !important;
+        .navbar .month-selector,
+        .month-selector {
+            max-width: 95px !important;
+            font-size: 0.7rem !important;
+            padding: 0.2rem 0.35rem !important;
         }
         
         form[action*="dashboard"] .btn-primary {
