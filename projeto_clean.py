@@ -657,10 +657,6 @@ def dashboard():
         else: 
             filtro = hoje.strftime('%Y-%m')
 
-    # Verifica se precisa gerar fixos (somente se houver fixos cadastrados)
-    has_fixed_expenses = FixedExpense.query.filter_by(user_id=user_id).count() > 0
-    ask_to_generate = has_fixed_expenses and not check_generation_log(user_id, filtro)
-    
     # Obtém dados financeiros
     (ent, sai, sal, dados, cats, vals, days, d_in, d_out, d_bal, df_u, t_ent, t_sai, macro, avg_ent, avg_sai, tooltips) = get_monthly_finance_data(filtro, user_id, run_fixed=False)
     
@@ -701,17 +697,8 @@ def dashboard():
         avg_ent=avg_ent,
         avg_sai=avg_sai,
         macro_tooltips=tooltips,
-        ask_to_generate=ask_to_generate,
         metas_dropdown=metas_dropdown
     )
-
-@app.route('/gerar_fixos_cmd')
-@login_required
-def gerar_fixos_cmd():
-    mes = request.args.get('mes')
-    if mes: 
-        generate_monthly_entries(mes, current_user.id, force=True)
-    return redirect(url_for('dashboard', filtro_mes=mes))
 
 @app.route('/toggle_status/<int:id>')
 @login_required

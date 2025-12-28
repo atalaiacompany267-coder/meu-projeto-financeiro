@@ -16,15 +16,17 @@
 {% block content %}
 <style>
     /* ========================================
-       LEGENDA CUSTOMIZADA DO GRÁFICO - GRID 2 COLUNAS
+       LEGENDA CUSTOMIZADA DO GRÁFICO - GRID 2 COLUNAS IGUAIS
+       TEXTO BRANCO NO MODO ESCURO (#FFFFFF)
        ======================================== */
     
-    /* Container da legenda customizada */
+    /* Container da legenda customizada - GRID 2 COLUNAS EQUILIBRADAS */
     #categoryLegend {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8px !important;
+        gap: 8px 12px !important;
         align-content: start !important;
+        justify-items: start !important;
     }
     
     /* Itens da legenda - DINÂMICO: Preto no modo claro, Branco no modo escuro */
@@ -33,29 +35,35 @@
         align-items: center !important;
         gap: 6px !important;
         font-size: 11px !important;
-        color: var(--text-color) !important;
+        width: 100% !important;
     }
     
-    #categoryLegend div span {
-        color: var(--text-color) !important;
+    /* Bolinha colorida da legenda */
+    #categoryLegend div span:first-child {
+        width: 10px !important;
+        height: 10px !important;
+        min-width: 10px !important;
+        min-height: 10px !important;
+        border-radius: 50% !important;
+        flex-shrink: 0 !important;
     }
     
-    /* Modo claro: texto preto */
-    [data-theme="light"] #categoryLegend div,
-    [data-theme="light"] #categoryLegend div span {
+    /* Texto da legenda - Modo claro: preto */
+    #categoryLegend div,
+    #categoryLegend div span:last-child {
         color: #2d3748 !important;
     }
     
-    /* Modo escuro: texto branco */
+    /* Modo escuro: texto BRANCO FORÇADO */
     [data-theme="dark"] #categoryLegend div,
-    [data-theme="dark"] #categoryLegend div span {
+    [data-theme="dark"] #categoryLegend div span:last-child {
         color: #FFFFFF !important;
     }
     
     /* Mobile: ajustes de tamanho */
     @media (max-width: 767px) {
         #categoryLegend {
-            gap: 6px !important;
+            gap: 6px 10px !important;
         }
         
         #categoryLegend div {
@@ -65,6 +73,8 @@
         #categoryLegend div span:first-child {
             width: 8px !important;
             height: 8px !important;
+            min-width: 8px !important;
+            min-height: 8px !important;
         }
     }
     
@@ -554,7 +564,7 @@
             font-size: 0.85rem !important;
         }
         
-        /* Formulário Mobile: 3 colunas x 2 linhas */
+        /* Formulário Mobile: 3 colunas x 2 linhas + botão 100% */
         form[action*="add_lancamento"] .row {
             display: grid !important;
             grid-template-columns: repeat(3, 1fr) !important;
@@ -562,18 +572,37 @@
             align-items: start !important;
         }
         
-        /* Todos os campos em 1 coluna cada */
+        /* Todos os campos em 1 coluna cada - Grid 3x2 */
         form[action*="add_lancamento"] .col-6,
-        form[action*="add_lancamento"] .col-12:nth-child(6) {
+        form[action*="add_lancamento"] .col-md-2,
+        form[action*="add_lancamento"] .col-12:not(:last-child) {
             grid-column: span 1 !important;
             width: 100% !important;
             max-width: 100% !important;
             flex: none !important;
         }
         
-        /* Botão (+) - Linha 3, largura total */
-        form[action*="add_lancamento"] .col-12:last-child {
-            grid-column: span 3 !important;
+        /* Botão (+) - ÚLTIMA LINHA, LARGURA TOTAL 100% */
+        form[action*="add_lancamento"] .col-12:last-child,
+        form[action*="add_lancamento"] .col-md-1:last-child {
+            grid-column: 1 / -1 !important;
+            width: 100% !important;
+        }
+        
+        /* Botão verde grande no mobile */
+        form[action*="add_lancamento"] button[type="submit"] {
+            width: 100% !important;
+            height: 46px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            color: white !important;
+            border-radius: 8px !important;
         }
         
         /* Inputs menores no mobile */
@@ -970,28 +999,6 @@
     </div>
 </div>
 
-{% if ask_to_generate %}
-<!-- Modal para gerar fixos -->
-<div class="modal fade" id="gerarFixosModal" tabindex="-1" aria-labelledby="gerarFixosModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Gerar Lançamentos Fixos</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Deseja gerar os lançamentos fixos para <strong>{{ mes_extenso }}</strong>?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Agora não</button>
-                <a href="{{ url_for('gerar_fixos_cmd', mes=filtro_atual) }}" class="btn btn-success">
-                    <i class="fas fa-sync me-1"></i> Gerar Agora
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
 {% endblock %}
 
 {% block extra_js %}
@@ -1231,12 +1238,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchInput) {
         searchInput.addEventListener('input', applyFilters);
     }
-    
-    {% if ask_to_generate %}
-    // Show modal to generate fixed expenses
-    const modal = new bootstrap.Modal(document.getElementById('gerarFixosModal'));
-    modal.show();
-    {% endif %}
 });
 </script>
 {% endblock %}

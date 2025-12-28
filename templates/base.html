@@ -23,17 +23,91 @@
     <!-- FORÇAR ESTILOS COM !important - IGNORAR CACHE -->
     <style id="force-styles">
         /* ========================================
-           CORREÇÃO DRÁSTICA - DESBLOQUEIO TOTAL
-           Força TODOS os botões a funcionarem
+           DROPDOWN DA ENGRENAGEM - FORÇAR VISIBILIDADE
            ======================================== */
         
-        /* Container principal - pointer-events: none só para que 
-           a área vazia não bloqueie o conteúdo abaixo */
+        /* MODO CLARO - Texto preto sobre branco */
+        .dropdown-actions-menu {
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            border: 1px solid #dee2e6 !important;
+        }
+        
+        .dropdown-action-item,
+        .dropdown-action-item span,
+        .dropdown-actions-menu a,
+        .dropdown-actions-menu a span {
+            color: #000000 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            display: flex !important;
+        }
+        
+        .dropdown-action-item i,
+        .dropdown-actions-menu a i {
+            color: #555555 !important;
+            opacity: 1 !important;
+        }
+        
+        /* MODO ESCURO - Texto branco sobre fundo escuro */
+        [data-theme="dark"] .dropdown-actions-menu {
+            background: #1a1a1a !important;
+            background-color: #1a1a1a !important;
+            border-color: #2d2d2d !important;
+        }
+        
+        [data-theme="dark"] .dropdown-action-item,
+        [data-theme="dark"] .dropdown-action-item span,
+        [data-theme="dark"] .dropdown-actions-menu a,
+        [data-theme="dark"] .dropdown-actions-menu a span {
+            color: #ffffff !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        
+        [data-theme="dark"] .dropdown-action-item i,
+        [data-theme="dark"] .dropdown-actions-menu a i {
+            color: #adb5bd !important;
+            opacity: 1 !important;
+        }
+        
+        /* ========================================
+           RESET GLOBAL - Garante interatividade
+           ======================================== */
+        
+        /* RESET GLOBAL - Remove qualquer bloqueio invisível */
+        html, body {
+            pointer-events: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* REMOVER BARRA PRETA SUPERIOR - Header colado no topo */
+        body, html {
+            margin: 0 !important;
+            padding: 0 !important;
+            position: relative;
+        }
+        
+        .main-content {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+        
         .top-navbar {
-            pointer-events: none !important;
+            margin-top: 0 !important;
+        }
+        
+        /* ========================================
+           TOP NAVBAR - INTERATIVA
+           ======================================== */
+        
+        /* Navbar totalmente clicável */
+        .top-navbar {
+            pointer-events: auto !important;
             position: sticky !important;
             top: 0 !important;
-            z-index: 1000 !important;
+            z-index: 1050 !important;
         }
         
         /* TODOS os elementos dentro - SEMPRE clicáveis */
@@ -93,7 +167,7 @@
             flex-wrap: nowrap !important;
             background: var(--bg-card) !important;
             isolation: isolate;
-            overflow-x: hidden !important; /* Prevenir scroll horizontal */
+            overflow: visible !important; /* Permitir dropdown aparecer */
         }
         
         /* GRUPO DA ESQUERDA: Botão de Menu + Título */
@@ -109,16 +183,18 @@
             text-overflow: ellipsis !important;
         }
         
-        /* GRUPO DA DIREITA: Ícones COLADOS */
+        /* GRUPO DA DIREITA: Ícones com gap de 4px */
         .navbar-actions {
             display: flex !important;
             align-items: center !important;
-            gap: 2px !important;
+            justify-content: flex-end !important;
+            gap: 4px !important;
             flex-wrap: nowrap !important;
-            margin-left: 0 !important;
+            margin-left: auto !important;
             margin-right: 5px !important;
             width: auto !important;
             max-width: max-content !important;
+            overflow: visible !important;
         }
         
         /* ========================================
@@ -230,7 +306,7 @@
             }
             
             .navbar-actions {
-                gap: 10px !important;
+                gap: 4px !important;
             }
         }
         
@@ -243,7 +319,7 @@
                 align-items: center !important;
                 justify-content: space-between !important;
                 padding: 0.75rem 1rem !important;
-                overflow-x: hidden !important;
+                overflow: visible !important;
             }
             
             .btn-theme-toggle,
@@ -267,14 +343,18 @@
                 font-size: 0.9rem !important;
             }
             
+            /* ÍCONES COLADOS - GAP 4px, ALINHADOS À DIREITA */
             .navbar-actions {
                 display: flex !important;
                 flex-direction: row !important;
                 flex-wrap: nowrap !important;
                 align-items: center !important;
-                gap: 10px !important;
+                gap: 4px !important;
                 margin-left: auto !important;
+                margin-right: 8px !important;
                 flex-shrink: 0 !important;
+                justify-content: flex-end !important;
+                overflow: visible !important;
             }
             
             /* Título Dashboard reduzido no mobile */
@@ -296,6 +376,7 @@
             --bg-sidebar: #2c3e50;
             --bg-sidebar-hover: #34495e;
             --bg-input: #ffffff;
+            --bg-hover: #f0f0f0;
             
             --text-primary: #212529;
             --text-secondary: #6c757d;
@@ -336,6 +417,7 @@
             --bg-sidebar: #0d0d0d;
             --bg-sidebar-hover: #1a1a1a;
             --bg-input: #1a1a1a;
+            --bg-hover: #2d2d2d;
             
             --text-primary: #f8f9fa;
             --text-secondary: #adb5bd;
@@ -565,6 +647,7 @@
         /* Top Navbar */
         /* ========================================
            TOP NAVBAR - STICKY HEADER FIXO
+           z-index: 1050 (alto, mas ABAIXO do modal)
            ======================================== */
         .top-navbar {
             background: var(--bg-card) !important;
@@ -575,10 +658,11 @@
             align-items: center;
             position: sticky !important;
             top: 0 !important;
-            z-index: 1000 !important;
+            z-index: 1050 !important; /* Alto, mas modal fica acima */
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             flex-wrap: nowrap;
-            pointer-events: none;
+            pointer-events: auto;
+            overflow: visible;
             transition: box-shadow 0.3s ease;
         }
         
@@ -637,9 +721,11 @@
         .navbar-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: flex-end;
+            gap: 4px;
             flex-wrap: nowrap;
             margin-left: auto;
+            overflow: visible;
         }
         
         .navbar-actions form {
@@ -724,7 +810,9 @@
            ======================================== */
         .dropdown-actions-wrapper {
             position: relative;
-            z-index: 99998;
+            z-index: 9999;
+            pointer-events: auto !important;
+            overflow: visible !important;
         }
         
         .btn-actions-toggle {
@@ -737,12 +825,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
+            cursor: pointer !important;
             transition: all 0.2s ease;
             font-size: 1rem;
             position: relative;
-            z-index: 1001;
-            pointer-events: auto;
+            z-index: 9999;
+            pointer-events: auto !important;
             flex-shrink: 0;
         }
         
@@ -765,15 +853,19 @@
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
             padding: 8px 0;
             display: none;
-            z-index: 99997;
-            pointer-events: auto;
+            z-index: 99999 !important;
+            pointer-events: auto !important;
         }
         
         .dropdown-actions-menu.show {
-            display: block;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            z-index: 99999 !important;
         }
         
         .dropdown-action-item {
@@ -781,40 +873,59 @@
             align-items: center;
             gap: 12px;
             padding: 12px 16px;
-            color: var(--text-primary);
+            color: #000000 !important;
             text-decoration: none;
             transition: all 0.2s ease;
             font-size: 0.9rem;
-            pointer-events: auto;
+            pointer-events: auto !important;
+            cursor: pointer !important;
+            background: transparent;
         }
         
         .dropdown-action-item:hover {
-            background: var(--bg-hover);
-            color: var(--color-primary);
+            background: #f0f0f0 !important;
+            color: var(--color-primary) !important;
         }
         
         .dropdown-action-item i {
             width: 18px;
             text-align: center;
-            color: var(--text-secondary);
+            color: #555555 !important;
             pointer-events: none !important;
         }
         
         .dropdown-action-item:hover i {
-            color: var(--color-primary);
+            color: var(--color-primary) !important;
+        }
+        
+        /* Dark Mode: texto branco no dropdown */
+        [data-theme="dark"] .dropdown-action-item {
+            color: #FFFFFF !important;
+        }
+        
+        [data-theme="dark"] .dropdown-action-item:hover {
+            background: #2d2d2d !important;
+            color: #0d6efd !important;
+        }
+        
+        [data-theme="dark"] .dropdown-action-item i {
+            color: #adb5bd !important;
+        }
+        
+        [data-theme="dark"] .dropdown-action-item:hover i {
+            color: #0d6efd !important;
+        }
+        
+        /* Dark Mode: fundo do dropdown */
+        [data-theme="dark"] .dropdown-actions-menu {
+            background: #1a1a1a !important;
+            border-color: #2d2d2d !important;
         }
         
         .dropdown-actions-menu .dropdown-divider {
             height: 1px;
             margin: 8px 0;
             background: var(--border-color);
-        }
-        
-        /* Dark Mode para o dropdown */
-        [data-theme="dark"] .dropdown-actions-menu {
-            background: var(--bg-card);
-            border-color: var(--border-color);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
         }
         
         /* GARANTIA ADICIONAL: Ícones dentro de botões não bloqueiam */
@@ -1471,41 +1582,75 @@
         }
         
         /* ========================================
-           MODALS - CENTRALIZADO E OVERLAY - Z-INDEX ALTO
+           MODALS - CENTRALIZADO E OVERLAY - Z-INDEX MÁXIMO
+           DESBLOQUEIO TOTAL DE CLIQUES
            ======================================== */
-        /* Overlay escurecido */
+        /* Overlay escurecido - z-index 99998 */
         .modal-backdrop {
             background-color: rgba(0, 0, 0, 0.7) !important;
-            z-index: 10000 !important;
+            z-index: 99998 !important;
             position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            pointer-events: auto !important;
         }
         
         [data-theme="dark"] .modal-backdrop {
             background-color: rgba(0, 0, 0, 0.85) !important;
         }
         
-        /* Modal centralizado e clicável */
+        /* RESET BODY - Garantir que modal não trave a página */
+        body.modal-open {
+            overflow: hidden !important;
+            pointer-events: auto !important;
+        }
+        
+        /* Modal centralizado e clicável - z-index 99999 */
         .modal {
-            z-index: 10001 !important;
+            z-index: 99999 !important;
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
             width: 100vw !important;
             height: 100vh !important;
+            display: none;
+            pointer-events: none !important;
+        }
+        
+        .modal.show {
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
+            pointer-events: auto !important;
         }
         
         .modal-dialog {
             margin: 1rem;
             position: relative !important;
+            pointer-events: auto !important;
+            z-index: 99999 !important;
         }
         
         .modal-dialog-centered {
             display: flex;
             align-items: center;
             min-height: calc(100% - 2rem);
+            margin: auto !important;
+        }
+        
+        /* Mobile: Centralização vertical forçada */
+        @media (max-width: 767.98px) {
+            .modal-dialog {
+                margin: 0.5rem !important;
+                max-height: 90vh !important;
+            }
+            
+            .modal-dialog-centered {
+                min-height: auto !important;
+                margin: auto !important;
+            }
         }
         
         /* Modal Content */
@@ -1516,6 +1661,9 @@
             overflow: hidden;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             animation: modalSlideIn 0.3s ease-out;
+            pointer-events: auto !important;
+            z-index: 99999 !important;
+            position: relative !important;
         }
         
         @keyframes modalSlideIn {
@@ -1534,6 +1682,7 @@
             background: transparent;
             border-radius: inherit;
             padding: 1.25rem;
+            pointer-events: auto !important;
         }
         
         .modal-title {
@@ -1546,6 +1695,7 @@
             border-radius: inherit;
             padding: 1.5rem 1.25rem;
             font-size: 1rem;
+            pointer-events: auto !important;
         }
         
         .modal-body p {
@@ -1559,6 +1709,28 @@
             border-radius: inherit;
             padding: 1rem 1.25rem;
             gap: 0.75rem;
+            pointer-events: auto !important;
+        }
+        
+        /* BOTÕES DO MODAL - SEMPRE CLICÁVEIS */
+        .modal-footer .btn {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            z-index: 99999 !important;
+            position: relative !important;
+        }
+        
+        .modal-footer .btn-secondary,
+        .modal-footer .btn-success {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+        }
+        
+        /* Botão fechar X */
+        .modal-header .btn-close {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            z-index: 99999 !important;
         }
         
         .btn-close {
@@ -1931,7 +2103,8 @@
             
             .navbar-actions {
                 flex-wrap: nowrap;
-                gap: 1.25rem;
+                gap: 4px;
+                justify-content: flex-end;
             }
             
             .top-navbar > .d-flex {
@@ -1963,14 +2136,15 @@
                 display: block;
             }
             
-            /* IMPORTANTE: Header continua com pointer-events: none */
+            /* IMPORTANTE: Header com pointer-events: auto para dropdown */
             .top-navbar {
                 padding: 0.75rem 1rem;
                 flex-wrap: nowrap;
-                pointer-events: none !important;
+                pointer-events: auto !important;
                 position: sticky !important;
                 top: 0 !important;
                 z-index: 1000 !important;
+                overflow: visible !important;
             }
             
             /* Mas TODOS os elementos dentro são clicáveis */
@@ -1985,7 +2159,8 @@
             
             .navbar-actions {
                 flex-wrap: nowrap;
-                gap: 10px;
+                gap: 4px;
+                justify-content: flex-end;
                 margin-left: auto;
                 width: auto !important;
                 max-width: max-content !important;
@@ -2039,12 +2214,11 @@
             .top-navbar {
                 flex-wrap: nowrap !important;
                 padding: 0.75rem 1rem;
-                pointer-events: none !important;
+                pointer-events: auto !important;
                 position: sticky !important;
                 top: 0 !important;
                 z-index: 1000 !important;
-                overflow-x: auto !important;
-                overflow-y: hidden !important;
+                overflow: visible !important;
             }
             
             /* TODOS os elementos dentro clicáveis */
@@ -2062,7 +2236,8 @@
             
             .navbar-actions {
                 flex-wrap: nowrap !important;
-                gap: 5px !important;
+                gap: 4px !important;
+                justify-content: flex-end !important;
                 margin-left: auto !important;
                 width: auto !important;
                 max-width: max-content !important;
@@ -2594,9 +2769,9 @@
                 gap: 5px !important;
             }
             
-            /* Garantir overflow-x hidden */
+            /* Overflow visible para dropdown aparecer */
             .top-navbar {
-                overflow-x: hidden !important;
+                overflow: visible !important;
             }
             
             /* Cards de resumo - Padding reduzido para mobile pequeno */
@@ -2632,46 +2807,37 @@
             pointer-events: none !important;
         }
         
-        /* Modal Bootstrap - CORREÇÃO CRÍTICA z-index alto */
+        /* ========================================
+           MODAL BOOTSTRAP - CORREÇÃO SIMPLES
+           Apenas z-index alto, deixar Bootstrap controlar o resto
+           ======================================== */
         .modal-backdrop {
-            z-index: 10000 !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            background-color: rgba(0, 0, 0, 0.7) !important;
+            z-index: 1055 !important;
         }
         
         .modal {
-            z-index: 10001 !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
+            z-index: 1056 !important;
+        }
+        
+        .modal-dialog {
             pointer-events: auto !important;
         }
         
-        .modal.show .modal-dialog {
-            pointer-events: auto !important;
-            position: relative !important;
-            margin: auto !important;
-        }
-        
-        .modal-content,
-        .modal-content * {
+        .modal-content {
             pointer-events: auto !important;
         }
         
         .modal-content .btn,
-        .modal-content .btn-close {
+        .modal-content .btn-close,
+        .modal-content a.btn {
             pointer-events: auto !important;
             cursor: pointer !important;
-            z-index: 10002 !important;
+        }
+        
+        /* Garantir que ícones dentro de botões não bloqueiem */
+        .modal-content .btn i,
+        .modal-content a.btn i {
+            pointer-events: none !important;
         }
     </style>
     
@@ -2748,7 +2914,7 @@
                     <p class="page-subtitle">{% block page_subtitle %}{% endblock %}</p>
                 </div>
             </div>
-            <div class="navbar-actions" style="display: flex !important; align-items: center !important; gap: 2px !important; flex-wrap: nowrap !important; margin-left: 0 !important; margin-right: 0 !important;">
+            <div class="navbar-actions" style="display: flex !important; align-items: center !important; gap: 4px !important; flex-wrap: nowrap !important; margin-left: auto !important; margin-right: 8px !important; justify-content: flex-end !important;">
                 <!-- 1️⃣ ÍCONE OLHO (Privacidade) -->
                 <button class="btn-privacy-toggle" id="btn-privacy" title="Modo Privacidade">
                     <i class="fas fa-eye"></i>
@@ -2764,23 +2930,19 @@
                     <button class="btn-actions-toggle" id="btn-actions" title="Menu de Ações">
                         <i class="fas fa-cog"></i>
                     </button>
-                    <div class="dropdown-actions-menu" id="actionsDropdown">
-                        <a href="{{ url_for('gerar_fixos_cmd', mes=filtro_atual|default('')) }}" class="dropdown-action-item">
-                            <i class="fas fa-sync"></i>
-                            <span>Gerar Fixos</span>
+                    <div class="dropdown-actions-menu" id="actionsDropdown" style="background: #ffffff; border: 1px solid #dee2e6;">
+                        <a href="{{ url_for('backup_json') }}" class="dropdown-action-item" style="color: #000000 !important; opacity: 1 !important; visibility: visible !important;">
+                            <i class="fas fa-download" style="color: #555555 !important;"></i>
+                            <span style="color: #000000 !important; opacity: 1 !important;">Exportar Backup</span>
                         </a>
-                        <a href="{{ url_for('backup_json') }}" class="dropdown-action-item">
-                            <i class="fas fa-download"></i>
-                            <span>Exportar Backup</span>
+                        <a href="#" onclick="document.getElementById('restore-file').click(); return false;" class="dropdown-action-item" style="color: #000000 !important; opacity: 1 !important; visibility: visible !important;">
+                            <i class="fas fa-upload" style="color: #555555 !important;"></i>
+                            <span style="color: #000000 !important; opacity: 1 !important;">Restaurar Backup</span>
                         </a>
-                        <a href="#" onclick="document.getElementById('restore-file').click(); return false;" class="dropdown-action-item">
-                            <i class="fas fa-upload"></i>
-                            <span>Restaurar Backup</span>
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" onclick="document.getElementById('import-excel').click(); return false;" class="dropdown-action-item">
-                            <i class="fas fa-file-excel"></i>
-                            <span>Importar Excel</span>
+                        <div class="dropdown-divider" style="background: #dee2e6;"></div>
+                        <a href="#" onclick="document.getElementById('import-excel').click(); return false;" class="dropdown-action-item" style="color: #000000 !important; opacity: 1 !important; visibility: visible !important;">
+                            <i class="fas fa-file-excel" style="color: #555555 !important;"></i>
+                            <span style="color: #000000 !important; opacity: 1 !important;">Importar Excel</span>
                         </a>
                     </div>
                 </div>
@@ -2878,6 +3040,66 @@
             updateNavbarShadow();
             
             // ========================================
+            // FUNÇÃO PARA ATUALIZAR CORES DO DROPDOWN
+            // ========================================
+            function updateDropdownColors(theme) {
+                const dropdownItems = document.querySelectorAll('.dropdown-action-item');
+                const dropdownMenu = document.getElementById('actionsDropdown');
+                
+                if (theme === 'dark') {
+                    // Modo escuro: texto branco sobre fundo escuro
+                    dropdownItems.forEach(item => {
+                        item.style.setProperty('color', '#FFFFFF', 'important');
+                        item.style.setProperty('opacity', '1', 'important');
+                        item.style.setProperty('visibility', 'visible', 'important');
+                        
+                        const icon = item.querySelector('i');
+                        if (icon) {
+                            icon.style.setProperty('color', '#adb5bd', 'important');
+                            icon.style.setProperty('opacity', '1', 'important');
+                        }
+                        
+                        const span = item.querySelector('span');
+                        if (span) {
+                            span.style.setProperty('color', '#FFFFFF', 'important');
+                            span.style.setProperty('opacity', '1', 'important');
+                            span.style.setProperty('visibility', 'visible', 'important');
+                        }
+                    });
+                    if (dropdownMenu) {
+                        dropdownMenu.style.setProperty('background', '#1a1a1a', 'important');
+                        dropdownMenu.style.setProperty('background-color', '#1a1a1a', 'important');
+                        dropdownMenu.style.setProperty('border-color', '#2d2d2d', 'important');
+                    }
+                } else {
+                    // Modo claro: texto preto sobre fundo branco
+                    dropdownItems.forEach(item => {
+                        item.style.setProperty('color', '#000000', 'important');
+                        item.style.setProperty('opacity', '1', 'important');
+                        item.style.setProperty('visibility', 'visible', 'important');
+                        
+                        const icon = item.querySelector('i');
+                        if (icon) {
+                            icon.style.setProperty('color', '#555555', 'important');
+                            icon.style.setProperty('opacity', '1', 'important');
+                        }
+                        
+                        const span = item.querySelector('span');
+                        if (span) {
+                            span.style.setProperty('color', '#000000', 'important');
+                            span.style.setProperty('opacity', '1', 'important');
+                            span.style.setProperty('visibility', 'visible', 'important');
+                        }
+                    });
+                    if (dropdownMenu) {
+                        dropdownMenu.style.setProperty('background', '#ffffff', 'important');
+                        dropdownMenu.style.setProperty('background-color', '#ffffff', 'important');
+                        dropdownMenu.style.setProperty('border-color', '#dee2e6', 'important');
+                    }
+                }
+            }
+            
+            // ========================================
             // THEME TOGGLE (Dark Mode)
             // ========================================
             const html = document.documentElement;
@@ -2888,6 +3110,7 @@
             const savedTheme = localStorage.getItem('theme') || 'light';
             html.setAttribute('data-theme', savedTheme);
             updateThemeIcon(savedTheme);
+            updateDropdownColors(savedTheme); // Aplica cores iniciais
             
             themeBtn.addEventListener('click', function() {
                 const currentTheme = html.getAttribute('data-theme');
@@ -2896,6 +3119,7 @@
                 html.setAttribute('data-theme', newTheme);
                 localStorage.setItem('theme', newTheme);
                 updateThemeIcon(newTheme);
+                updateDropdownColors(newTheme); // Atualiza cores do dropdown
                 
                 // Atualizar contraste dos gráficos Chart.js
                 updateChartTheme(newTheme);
@@ -3008,13 +3232,34 @@
             const actionsBtn = document.getElementById('btn-actions');
             const actionsDropdown = document.getElementById('actionsDropdown');
             
+            console.log('🔍 Elementos do Dropdown:', {
+                botão: actionsBtn ? 'OK' : 'NÃO ENCONTRADO',
+                menu: actionsDropdown ? 'OK' : 'NÃO ENCONTRADO'
+            });
+            
             if (actionsBtn && actionsDropdown) {
                 // Toggle dropdown ao clicar no botão
                 actionsBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
                     e.stopPropagation();
-                    actionsDropdown.classList.toggle('show');
-                    actionsBtn.classList.toggle('active');
-                    console.log('🎛️ Actions Dropdown:', actionsDropdown.classList.contains('show') ? 'aberto' : 'fechado');
+                    
+                    const isOpen = actionsDropdown.classList.contains('show');
+                    
+                    if (isOpen) {
+                        actionsDropdown.classList.remove('show');
+                        actionsBtn.classList.remove('active');
+                    } else {
+                        actionsDropdown.classList.add('show');
+                        actionsBtn.classList.add('active');
+                    }
+                    
+                    console.log('🎛️ Actions Dropdown:', actionsDropdown.classList.contains('show') ? 'ABERTO' : 'FECHADO');
+                    console.log('🎨 Estilo atual:', {
+                        display: window.getComputedStyle(actionsDropdown).display,
+                        visibility: window.getComputedStyle(actionsDropdown).visibility,
+                        opacity: window.getComputedStyle(actionsDropdown).opacity,
+                        zIndex: window.getComputedStyle(actionsDropdown).zIndex
+                    });
                 });
                 
                 // Fecha dropdown ao clicar fora
@@ -3032,6 +3277,8 @@
                         actionsBtn.classList.remove('active');
                     }
                 });
+            } else {
+                console.error('❌ ERRO: Elementos do dropdown não encontrados!');
             }
             
             // Ajusta ao redimensionar janela

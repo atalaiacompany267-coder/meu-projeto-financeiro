@@ -364,6 +364,27 @@
         box-shadow: 0 2px 8px rgba(108, 117, 125, 0.2);
     }
     
+    .meta-action-buttons .btn-outline-secondary:hover i {
+        color: #000000 !important;
+    }
+    
+    /* Modo escuro: Botão Editar sempre fundo branco, texto preto */
+    [data-theme="dark"] .meta-action-buttons .btn-outline-secondary {
+        background-color: #ffffff !important;
+        border-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    [data-theme="dark"] .meta-action-buttons .btn-outline-secondary i {
+        color: #000000 !important;
+    }
+    
+    [data-theme="dark"] .meta-action-buttons .btn-outline-secondary:hover {
+        background-color: #f0f0f0 !important;
+        border-color: #e0e0e0 !important;
+        color: #000000 !important;
+    }
+    
     .meta-action-buttons .btn-danger {
         background-color: #dc3545 !important;
         border-color: #dc3545 !important;
@@ -399,19 +420,23 @@
         padding-top: 0.75rem !important;
     }
     
-    /* Dropdown de ações (menu 3 pontinhos) */
+    /* OCULTAR dropdown de 3 pontinhos completamente */
+    .meta-card .dropdown,
+    .meta-card .dropdown-toggle,
+    .meta-card .dropdown-menu,
+    .meta-card [data-bs-toggle="dropdown"],
+    .meta-card .fa-ellipsis-v,
+    .meta-card .fa-ellipsis-h,
+    .meta-card .fa-ellipsis {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    
+    /* Dropdown de ações - REMOVIDO */
     .meta-card .dropdown-menu {
-        min-width: 180px;
-    }
-    
-    .meta-card .dropdown-item {
-        padding: 0.5rem 1rem;
-        display: flex;
-        align-items: center;
-    }
-    
-    .meta-card .dropdown-item i {
-        width: 20px;
+        display: none !important;
     }
     
     /* ========================================
