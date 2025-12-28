@@ -45,6 +45,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_month_viewed = db.Column(db.String(7), nullable=True)  # Formato: YYYY-MM
+    last_year_viewed = db.Column(db.Integer, nullable=True)  # Formato: YYYY
     
     # Relacionamentos
     transactions = db.relationship('Transaction', backref='user', lazy='dynamic', cascade='all, delete-orphan')
@@ -79,6 +80,10 @@ class Transaction(db.Model):
     fixado = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
+    # Vínculo com Metas
+    meta_id = db.Column(db.Integer, db.ForeignKey('goals.id'), nullable=True)
+    tipo_contribuicao = db.Column(db.String(20), nullable=True)  # 'deposito', 'parcela', 'amortizacao'
+    
     def __repr__(self):
         return f'<Transaction {self.id}: {self.descricao} - R${self.valor}>'
 
@@ -102,21 +107,75 @@ class FixedExpense(db.Model):
 
 
 class Goal(db.Model):
-    """Modelo de Metas (substitui metas.json)"""
+    """Modelo de Metas (substitui metas.json) - Suporta Acumular e Quitar Dívidas"""
     __tablename__ = 'goals'
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     descricao = db.Column(db.String(255), nullable=False)
+    
+    # Tipo: 'acumular' ou 'quitar'
+    tipo_meta = db.Column(db.String(20), default='acumular')
+    
+    # Campos para ACUMULAR (guardar dinheiro)
     valor_alvo = db.Column(db.Float, nullable=False)
     valor_atual = db.Column(db.Float, default=0.0)
+    valor_aporte_mensal = db.Column(db.Float, default=0.0)  # Quanto depositar por mês
+    
+    # Campos para QUITAR (dívidas/parcelas)
+    valor_parcela = db.Column(db.Float, default=0.0)
+    total_meses = db.Column(db.Integer, default=0)
+    meses_pagos = db.Column(db.Integer, default=0)
+    aporte_extra = db.Column(db.Float, default=0.0)
+    
+    # Vínculo com Lançamento Fixo (opcional)
+    lancamento_fixo_id = db.Column(db.Integer, db.ForeignKey('fixed_expenses.id'), nullable=True)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     @property
     def percentual(self):
-        if self.valor_alvo <= 0:
+        if self.tipo_meta == 'quitar':
+            if self.total_meses <= 0:
+                return 0
+            return round((self.meses_pagos / self.total_meses) * 100, 1)
+        else:
+            if self.valor_alvo <= 0:
+                return 0
+            return round((self.valor_atual / self.valor_alvo) * 100, 1)
+    
+    @property
+    def valor_pago_total(self):
+        """Para dívidas: total já pago"""
+        if self.tipo_meta == 'quitar':
+            return self.meses_pagos * self.valor_parcela
+        return self.valor_atual
+    
+    @property
+    def meses_restantes(self):
+        """Para dívidas: meses que faltam"""
+        if self.tipo_meta == 'quitar':
+            return max(0, self.total_meses - self.meses_pagos)
+        return 0
+    
+    @property
+    def economia_meses(self):
+        """Calcula quantos meses antes a dívida será quitada com aporte extra"""
+        if self.tipo_meta != 'quitar' or self.aporte_extra <= 0 or self.valor_parcela <= 0:
             return 0
-        return round((self.valor_atual / self.valor_alvo) * 100, 1)
+        
+        valor_restante = self.valor_alvo - self.valor_pago_total
+        if valor_restante <= 0:
+            return 0
+        
+        # Com aporte extra mensal
+        parcela_com_extra = self.valor_parcela + self.aporte_extra
+        meses_com_extra = valor_restante / parcela_com_extra
+        
+        # Sem aporte extra
+        meses_sem_extra = valor_restante / self.valor_parcela
+        
+        return max(0, int(meses_sem_extra - meses_com_extra))
     
     def __repr__(self):
         return f'<Goal {self.descricao}: {self.percentual}%>'
@@ -168,7 +227,7 @@ def get_user_transactions_df(user_id, ano_mes=None):
     if df.empty:
         # Retorna DataFrame vazio com colunas já renomeadas
         return pd.DataFrame(columns=['ID', 'user_id', 'Data', 'AnoMes', 'Categoria', 'Tipo', 
-                                      'Descrição', 'Valor', 'Status', 'Classificação', 'Fixado'])
+                                      'Descrição', 'Valor', 'Status', 'Classificação', 'Fixado', 'MetaID'])
     
     # Converte coluna 'data' para datetime
     df['data'] = pd.to_datetime(df['data'])
@@ -188,7 +247,8 @@ def get_user_transactions_df(user_id, ano_mes=None):
         'valor': 'Valor',
         'status': 'Status',
         'classificacao': 'Classificação',
-        'fixado': 'Fixado'
+        'fixado': 'Fixado',
+        'meta_id': 'MetaID'
     })
     
     # Converte fixado de boolean para 'Sim'/'Não' para compatibilidade
@@ -418,9 +478,18 @@ def get_monthly_finance_data(filtro_mes, user_id, run_fixed=False):
         macro_lists[key].add(item_name)
     macro_tooltips = {k: ', '.join(sorted(list(v))) if v else "Nenhum item" for k, v in macro_lists.items()}
 
+    # Busca nomes das metas para exibição
+    metas_dict = {}
+    user_goals = Goal.query.filter_by(user_id=user_id).all()
+    for g in user_goals:
+        metas_dict[g.id] = {'nome': g.descricao, 'tipo': g.tipo_meta or 'acumular'}
+
     # Formata dados para exibição
     dados_exibicao = []
     for _, row in df_filtrado.iterrows():
+        meta_id = row.get('MetaID', None)
+        meta_info = metas_dict.get(meta_id, None) if meta_id else None
+        
         dados_exibicao.append({
             'ID': row['ID'],
             'Data': row['Data'].strftime('%d/%m/%Y') if hasattr(row['Data'], 'strftime') else str(row['Data']),
@@ -430,7 +499,10 @@ def get_monthly_finance_data(filtro_mes, user_id, run_fixed=False):
             'Valor': row['Valor'],
             'Status': row['Status'],
             'Classificação': row['Classificação'],
-            'Fixado': row['Fixado']
+            'Fixado': row['Fixado'],
+            'MetaID': meta_id,
+            'MetaNome': meta_info['nome'] if meta_info else None,
+            'MetaTipo': meta_info['tipo'] if meta_info else None
         })
 
     return float(entrada), float(saida), float(saldo), dados_exibicao, \
@@ -566,6 +638,13 @@ def dashboard():
     if arg_mes:
         filtro = arg_mes
         current_user.last_month_viewed = filtro
+        # Sincroniza ano com o Relatório Anual
+        try:
+            ano_do_mes = int(filtro.split('-')[0])
+            current_user.last_year_viewed = ano_do_mes
+            session['last_year'] = ano_do_mes
+        except:
+            pass
         db.session.commit()
         session['last_month'] = filtro
     else:
@@ -578,8 +657,9 @@ def dashboard():
         else: 
             filtro = hoje.strftime('%Y-%m')
 
-    # Verifica se precisa gerar fixos
-    ask_to_generate = not check_generation_log(user_id, filtro)
+    # Verifica se precisa gerar fixos (somente se houver fixos cadastrados)
+    has_fixed_expenses = FixedExpense.query.filter_by(user_id=user_id).count() > 0
+    ask_to_generate = has_fixed_expenses and not check_generation_log(user_id, filtro)
     
     # Obtém dados financeiros
     (ent, sai, sal, dados, cats, vals, days, d_in, d_out, d_bal, df_u, t_ent, t_sai, macro, avg_ent, avg_sai, tooltips) = get_monthly_finance_data(filtro, user_id, run_fixed=False)
@@ -592,6 +672,10 @@ def dashboard():
     except: 
         mes_ext = 'Atual'
         ano_ext = hoje.year
+    
+    # Obtém metas do usuário para o dropdown de vínculo
+    user_goals = Goal.query.filter_by(user_id=user_id).all()
+    metas_dropdown = [(g.id, g.descricao, g.tipo_meta or 'acumular') for g in user_goals]
     
     return render_template('index.html',
         active_page='dashboard',
@@ -617,7 +701,8 @@ def dashboard():
         avg_ent=avg_ent,
         avg_sai=avg_sai,
         macro_tooltips=tooltips,
-        ask_to_generate=ask_to_generate
+        ask_to_generate=ask_to_generate,
+        metas_dropdown=metas_dropdown
     )
 
 @app.route('/gerar_fixos_cmd')
@@ -631,12 +716,116 @@ def gerar_fixos_cmd():
 @app.route('/toggle_status/<int:id>')
 @login_required
 def toggle_status(id):
-    """Alterna o status de uma transação entre Pendente e Pago"""
+    """Alterna o status de uma transação entre Pendente e Pago.
+    LÓGICA FINANCEIRA: Usa o VALOR REAL do lançamento para atualizar metas/dívidas.
+    - Para dívidas: Subtrai do saldo devedor (não apenas +1 mês)
+    - Para metas: Soma ao valor guardado
+    Suporta amortização (valor > parcela) e pagamento parcial (valor < parcela)."""
     trans = Transaction.query.filter_by(id=id, user_id=current_user.id).first()
     filtro_retorno = request.args.get('filtro_mes')
     
     if trans:
-        trans.status = 'Pago' if trans.status != 'Pago' else 'Pendente'
+        status_anterior = trans.status
+        novo_status = 'Pago' if status_anterior != 'Pago' else 'Pendente'
+        trans.status = novo_status
+        
+        # Valor real do lançamento (sempre positivo para cálculos)
+        valor_lancamento = abs(float(trans.valor or 0))
+        
+        # Determina a meta a ser atualizada
+        goal = None
+        
+        # 1. Verifica vínculo direto (trans.meta_id)
+        if trans.meta_id:
+            goal = Goal.query.filter_by(id=trans.meta_id, user_id=current_user.id).first()
+        
+        # 2. Se não tem vínculo direto, verifica se é um lançamento fixo vinculado a uma meta
+        if not goal and trans.fixado:
+            desc_trans = (trans.descricao or '').strip().lower()
+            fixed_expenses = FixedExpense.query.filter_by(user_id=current_user.id).all()
+            
+            for fixed in fixed_expenses:
+                desc_fixed = (fixed.descricao or '').strip().lower()
+                is_match = False
+                
+                if desc_trans == desc_fixed:
+                    is_match = True
+                elif len(desc_trans) > 3 and desc_trans in desc_fixed:
+                    is_match = True
+                elif len(desc_fixed) > 3 and desc_fixed in desc_trans:
+                    is_match = True
+                
+                if is_match:
+                    goal = Goal.query.filter_by(
+                        user_id=current_user.id, 
+                        lancamento_fixo_id=fixed.id
+                    ).first()
+                    break
+        
+        # Atualiza a meta se encontrou
+        if goal and novo_status == 'Pago':
+            try:
+                if goal.tipo_meta == 'quitar':
+                    # ===== DÍVIDA: Lógica por VALOR (não apenas mês) =====
+                    valor_parcela = float(goal.valor_parcela or 0)
+                    valor_total = float(goal.valor_alvo or 0)
+                    valor_ja_pago = float(goal.valor_atual or 0)
+                    
+                    # Soma o valor pago ao acumulado
+                    novo_valor_pago = valor_ja_pago + valor_lancamento
+                    goal.valor_atual = novo_valor_pago
+                    
+                    # Calcula saldo restante
+                    saldo_restante = max(0, valor_total - novo_valor_pago)
+                    
+                    # Calcula meses pagos baseado no valor (permite frações)
+                    if valor_parcela > 0:
+                        meses_equivalentes = novo_valor_pago / valor_parcela
+                        goal.meses_pagos = int(meses_equivalentes)
+                    
+                    # Feedback detalhado
+                    if valor_lancamento > valor_parcela * 1.1:  # 10% de margem
+                        # Amortização (pagou mais que a parcela)
+                        extra = valor_lancamento - valor_parcela
+                        flash(f'💰 Amortização! R$ {valor_lancamento:.2f} abatido. Extra: R$ {extra:.2f}. Saldo: R$ {saldo_restante:.2f}', 'success')
+                    elif valor_lancamento < valor_parcela * 0.9:  # 10% de margem
+                        # Pagamento parcial
+                        flash(f'⚠️ Pagamento parcial: R$ {valor_lancamento:.2f} de R$ {valor_parcela:.2f}. Saldo: R$ {saldo_restante:.2f}', 'warning')
+                    else:
+                        # Parcela normal
+                        flash(f'✅ Parcela registrada! Pago: R$ {novo_valor_pago:.2f}. Saldo: R$ {saldo_restante:.2f}', 'info')
+                        
+                else:
+                    # ===== META DE GUARDAR: Soma valor real =====
+                    valor_a_somar = valor_lancamento
+                    goal.valor_atual = float(goal.valor_atual or 0) + valor_a_somar
+                    falta = max(0, float(goal.valor_alvo or 0) - goal.valor_atual)
+                    flash(f'💰 R$ {valor_a_somar:.2f} adicionado! Total: R$ {goal.valor_atual:.2f}. Faltam: R$ {falta:.2f}', 'success')
+                    
+            except Exception as e:
+                flash(f'Erro ao atualizar meta: {e}', 'warning')
+        
+        # Se desmarcou (voltou para Pendente), reverte a meta
+        elif goal and novo_status == 'Pendente':
+            try:
+                if goal.tipo_meta == 'quitar':
+                    # Dívida: subtrai o valor do acumulado
+                    valor_parcela = float(goal.valor_parcela or 0)
+                    goal.valor_atual = max(0, float(goal.valor_atual or 0) - valor_lancamento)
+                    
+                    # Recalcula meses pagos
+                    if valor_parcela > 0:
+                        goal.meses_pagos = int(goal.valor_atual / valor_parcela)
+                    
+                    saldo = max(0, float(goal.valor_alvo or 0) - goal.valor_atual)
+                    flash(f'↩️ Pagamento revertido! R$ {valor_lancamento:.2f} removido. Saldo: R$ {saldo:.2f}', 'warning')
+                else:
+                    # Meta de guardar: subtrai o valor
+                    goal.valor_atual = max(0, float(goal.valor_atual or 0) - valor_lancamento)
+                    flash(f'↩️ R$ {valor_lancamento:.2f} removido da meta "{goal.descricao}".', 'warning')
+            except Exception as e:
+                flash(f'Erro ao reverter meta: {e}', 'warning')
+        
         db.session.commit()
         if not filtro_retorno:
             filtro_retorno = trans.ano_mes
@@ -648,10 +837,19 @@ def toggle_status(id):
 @app.route('/add_lancamento', methods=['POST'])
 @login_required
 def add_lancamento():
-    """Adiciona uma nova transação"""
+    """Adiciona uma nova transação com possibilidade de vincular a meta.
+    A atualização da meta acontece quando o lançamento é CONFIRMADO (toggle_status),
+    não na criação. O lançamento começa como 'Pendente'."""
     try:
         d = datetime.strptime(request.form['data'], '%d/%m/%Y')
         v = float(request.form['valor']) * (-1 if request.form['tipo'] == 'SAIDA' else 1)
+        
+        # Verifica vínculo com meta (tratamento seguro de nulos)
+        meta_id = request.form.get('meta_id', '')
+        meta_id = int(meta_id) if meta_id and meta_id.strip() and meta_id.strip() != '' else None
+        
+        # Descrição é opcional (usa categoria se vazio)
+        descricao = request.form.get('descricao', '') or ''
         
         new_trans = Transaction(
             user_id=current_user.id,
@@ -659,14 +857,23 @@ def add_lancamento():
             ano_mes=d.strftime('%Y-%m'),
             categoria=request.form['categoria'],
             tipo=request.form['tipo'],
-            descricao=request.form['descricao'],
+            descricao=descricao,
             valor=v,
-            classificacao=request.form['classificacao'],
+            classificacao=request.form.get('classificacao', 'Essenciais'),
             status='Pendente',
-            fixado=False
+            fixado=False,
+            meta_id=meta_id
         )
         db.session.add(new_trans)
         db.session.commit()
+        
+        # Informa sobre o vínculo (a atualização da meta acontece no toggle_status)
+        if meta_id:
+            goal = Goal.query.filter_by(id=meta_id, user_id=current_user.id).first()
+            if goal:
+                tipo_str = 'dívida' if goal.tipo_meta == 'quitar' else 'meta'
+                flash(f'Lançamento vinculado à {tipo_str} "{goal.descricao}". Confirme (✓) para atualizar.', 'info')
+        
         return redirect(url_for('dashboard', filtro_mes=d.strftime('%Y-%m')))
     except Exception as e:
         db.session.rollback()
@@ -681,6 +888,10 @@ def edit_lancamento_form(lancamento_id):
     if not trans: 
         return redirect(url_for('dashboard'))
     
+    # Busca metas para o dropdown
+    user_goals = Goal.query.filter_by(user_id=current_user.id).all()
+    metas_dropdown = [(g.id, g.descricao, g.tipo_meta or 'acumular') for g in user_goals]
+    
     lancamento = {
         'ID': trans.id,
         'Data': trans.data.strftime('%d/%m/%Y'),
@@ -688,13 +899,15 @@ def edit_lancamento_form(lancamento_id):
         'Categoria': trans.categoria,
         'Descrição': trans.descricao,
         'Valor': trans.valor,
-        'Classificação': trans.classificacao
+        'Classificação': trans.classificacao,
+        'MetaID': trans.meta_id
     }
     return render_template('edit_lancamento.html',
         active_page='dashboard',
         user=current_user.username,
         lancamento=lancamento,
-        categorias_orcamento=get_all_categories(current_user.id)
+        categorias_orcamento=get_all_categories(current_user.id),
+        metas_dropdown=metas_dropdown
     )
 
 @app.route('/edit_lancamento_save', methods=['POST'])
@@ -716,7 +929,12 @@ def edit_lancamento_save():
             trans.valor = v
             trans.classificacao = request.form['classificacao']
             
+            # Atualiza vínculo com meta
+            meta_id = request.form.get('meta_id', '')
+            trans.meta_id = int(meta_id) if meta_id and meta_id.strip() else None
+            
             db.session.commit()
+            flash('Lançamento atualizado com sucesso!', 'success')
         except Exception as e:
             db.session.rollback()
             flash(f'Erro ao editar: {e}', 'danger')
@@ -882,34 +1100,121 @@ def metas():
     """Lista metas do usuário"""
     user_goals = Goal.query.filter_by(user_id=current_user.id).all()
     
+    # Obtém lançamentos fixos do usuário para o dropdown de vínculo
+    user_fixos = FixedExpense.query.filter_by(user_id=current_user.id).all()
+    fixos_dropdown = [(f.id, f.descricao or f.categoria, f.valor, f.tipo) for f in user_fixos]
+    
+    # Obtém TODOS os lançamentos (fixos + avulsos) para vínculo com metas
+    # Agrupados por categoria para facilitar visualização
+    user_transactions = Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.data.desc()).limit(100).all()
+    lancamentos_dropdown = []
+    for t in user_transactions:
+        tipo_label = "(Fixo)" if t.fixado else "(Avulso)"
+        data_str = t.data.strftime('%d/%m')
+        lancamentos_dropdown.append((
+            t.id,
+            f"{t.categoria} - {data_str} {tipo_label}",
+            abs(t.valor),
+            t.tipo
+        ))
+    
     # Converte para formato compatível com template
     metas_list = []
     for g in user_goals:
+        # Busca nome do lançamento fixo vinculado, se houver
+        fixo_nome = None
+        if g.lancamento_fixo_id:
+            fixo = FixedExpense.query.get(g.lancamento_fixo_id)
+            fixo_nome = fixo.descricao or fixo.categoria if fixo else None
+        
         metas_list.append((g.id, {
             'descricao': g.descricao,
             'valor_alvo': g.valor_alvo,
-            'valor_atual': g.valor_atual
+            'valor_atual': g.valor_atual,
+            'tipo_meta': g.tipo_meta or 'acumular',
+            'valor_parcela': g.valor_parcela or 0,
+            'total_meses': g.total_meses or 0,
+            'meses_pagos': g.meses_pagos or 0,
+            'valor_aporte_mensal': g.valor_aporte_mensal or 0,
+            'lancamento_fixo_id': g.lancamento_fixo_id,
+            'lancamento_fixo_nome': fixo_nome
         }))
     
     return render_template('metas.html',
         active_page='metas',
         user=current_user.username,
-        metas=metas_list
+        metas=metas_list,
+        fixos_dropdown=fixos_dropdown,
+        lancamentos_dropdown=lancamentos_dropdown
     )
 
 @app.route('/add_meta', methods=['POST'])
 @login_required
 def add_meta():
-    """Adiciona nova meta"""
-    new_goal = Goal(
-        user_id=current_user.id,
-        descricao=request.form['descricao'],
-        valor_alvo=float(request.form['valor_alvo']),
-        valor_atual=float(request.form.get('valor_atual', 0))
-    )
-    db.session.add(new_goal)
-    db.session.commit()
-    flash('Meta criada com sucesso!', 'success')
+    """Adiciona nova meta (guardar ou quitar dívida)"""
+    try:
+        tipo_meta = request.form.get('tipo_meta', 'acumular')
+        
+        # Vínculo com lançamento fixo (comum aos dois tipos)
+        lancamento_fixo_id_str = request.form.get('lancamento_fixo_id', '')
+        lancamento_fixo_id = int(lancamento_fixo_id_str) if lancamento_fixo_id_str.strip() else None
+        
+        if tipo_meta == 'quitar':
+            # Meta de quitar dívida - valor_alvo é calculado automaticamente
+            valor_parcela_str = request.form.get('valor_parcela', '0')
+            total_meses_str = request.form.get('total_meses', '0')
+            meses_pagos_str = request.form.get('meses_pagos', '0')
+            
+            # Converte com tratamento de string vazia
+            valor_parcela = float(valor_parcela_str) if valor_parcela_str.strip() else 0.0
+            total_meses = int(total_meses_str) if total_meses_str.strip() else 0
+            meses_pagos = int(meses_pagos_str) if meses_pagos_str.strip() else 0
+            
+            # Calcula valor_alvo automaticamente (parcela * total de meses)
+            valor_alvo = valor_parcela * total_meses
+            
+            new_goal = Goal(
+                user_id=current_user.id,
+                descricao=request.form['descricao'],
+                tipo_meta='quitar',
+                valor_alvo=valor_alvo,
+                valor_atual=valor_parcela * meses_pagos,
+                valor_parcela=valor_parcela,
+                total_meses=total_meses,
+                meses_pagos=meses_pagos,
+                lancamento_fixo_id=lancamento_fixo_id
+            )
+        else:
+            # Meta de guardar dinheiro
+            valor_alvo_str = request.form.get('valor_alvo', '0')
+            valor_atual_str = request.form.get('valor_atual', '0')
+            valor_aporte_str = request.form.get('valor_aporte_mensal', '0')
+            
+            valor_alvo = float(valor_alvo_str) if valor_alvo_str.strip() else 0.0
+            valor_atual = float(valor_atual_str) if valor_atual_str.strip() else 0.0
+            valor_aporte = float(valor_aporte_str) if valor_aporte_str.strip() else 0.0
+            
+            new_goal = Goal(
+                user_id=current_user.id,
+                descricao=request.form['descricao'],
+                tipo_meta='acumular',
+                valor_alvo=valor_alvo,
+                valor_atual=valor_atual,
+                valor_aporte_mensal=valor_aporte,
+                lancamento_fixo_id=lancamento_fixo_id
+            )
+        
+        db.session.add(new_goal)
+        db.session.commit()
+        
+        if lancamento_fixo_id:
+            flash('Meta criada e vinculada ao lançamento fixo!', 'success')
+        else:
+            flash('Meta criada com sucesso!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao criar meta: {e}', 'danger')
+    
     return redirect(url_for('metas'))
 
 @app.route('/delete_meta/<int:id>')
@@ -922,23 +1227,171 @@ def delete_meta(id):
         db.session.commit()
     return redirect(url_for('metas'))
 
+@app.route('/edit_meta/<int:id>', methods=['POST'])
+@login_required
+def edit_meta(id):
+    """Edita uma meta existente"""
+    try:
+        goal = Goal.query.filter_by(id=id, user_id=current_user.id).first()
+        if not goal:
+            flash('Meta não encontrada.', 'danger')
+            return redirect(url_for('metas'))
+        
+        # Atualiza descrição (comum para ambos os tipos)
+        goal.descricao = request.form.get('descricao', goal.descricao)
+        
+        # Vínculo com lançamento fixo
+        lancamento_fixo_id = request.form.get('lancamento_fixo_id', '')
+        goal.lancamento_fixo_id = int(lancamento_fixo_id) if lancamento_fixo_id else None
+        
+        if goal.tipo_meta == 'quitar':
+            # DÍVIDA: Atualiza campos específicos
+            valor_parcela_str = request.form.get('valor_parcela', '0')
+            total_meses_str = request.form.get('total_meses', '0')
+            valor_atual_str = request.form.get('valor_atual', '0')
+            
+            goal.valor_parcela = float(valor_parcela_str) if valor_parcela_str.strip() else goal.valor_parcela
+            goal.total_meses = int(total_meses_str) if total_meses_str.strip() else goal.total_meses
+            
+            # Recalcula valor_alvo (parcela * total de meses)
+            goal.valor_alvo = goal.valor_parcela * goal.total_meses
+            
+            # Atualiza valor já pago se informado
+            if valor_atual_str.strip():
+                goal.valor_atual = float(valor_atual_str)
+                # Recalcula meses pagos baseado no valor
+                if goal.valor_parcela > 0:
+                    goal.meses_pagos = int(goal.valor_atual / goal.valor_parcela)
+        else:
+            # META DE GUARDAR: Atualiza campos específicos
+            valor_alvo_str = request.form.get('valor_alvo', '0')
+            valor_atual_str = request.form.get('valor_atual', '0')
+            valor_aporte_str = request.form.get('valor_aporte_mensal', '0')
+            
+            goal.valor_alvo = float(valor_alvo_str) if valor_alvo_str.strip() else goal.valor_alvo
+            goal.valor_atual = float(valor_atual_str) if valor_atual_str.strip() else goal.valor_atual
+            goal.valor_aporte_mensal = float(valor_aporte_str) if valor_aporte_str.strip() else goal.valor_aporte_mensal
+        
+        db.session.commit()
+        flash(f'Meta "{goal.descricao}" atualizada com sucesso!', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao atualizar meta: {e}', 'danger')
+    
+    return redirect(url_for('metas'))
+
 @app.route('/add_valor_meta', methods=['POST'])
 @login_required
 def add_valor_meta():
-    """Adiciona valor a uma meta"""
-    goal = Goal.query.filter_by(id=int(request.form['meta_id']), user_id=current_user.id).first()
-    if goal:
-        valor = float(request.form['valor'])
-        goal.valor_atual += valor
-        db.session.commit()
-        flash(f'Adicionado R$ {valor:.2f} à meta!', 'success')
+    """Adiciona valor a uma meta ou paga dívida.
+    LÓGICA FINANCEIRA: Usa valor variável para dívidas (amortização/parcial)"""
+    try:
+        meta_id = request.form.get('meta_id', '')
+        if not meta_id:
+            flash('ID da meta não informado.', 'danger')
+            return redirect(url_for('metas'))
+            
+        goal = Goal.query.filter_by(id=int(meta_id), user_id=current_user.id).first()
+        
+        if not goal:
+            flash('Meta não encontrada.', 'danger')
+            return redirect(url_for('metas'))
+        
+        # Obtém o valor do formulário (tratamento seguro)
+        valor_str = request.form.get('valor', '0')
+        valor = float(valor_str) if valor_str and valor_str.strip() else 0.0
+        
+        if goal.tipo_meta == 'quitar':
+            # ===== DÍVIDA: Lógica por VALOR REAL =====
+            if valor <= 0:
+                flash('Informe um valor maior que zero.', 'warning')
+                return redirect(url_for('metas'))
+            
+            valor_parcela = float(goal.valor_parcela or 0)
+            valor_total = float(goal.valor_alvo or 0)
+            valor_ja_pago = float(goal.valor_atual or 0)
+            
+            # Soma o valor pago ao acumulado
+            novo_valor_pago = valor_ja_pago + valor
+            goal.valor_atual = novo_valor_pago
+            
+            # Calcula saldo restante
+            saldo_restante = max(0, valor_total - novo_valor_pago)
+            
+            # Calcula meses pagos baseado no valor acumulado
+            if valor_parcela > 0:
+                meses_equivalentes = novo_valor_pago / valor_parcela
+                goal.meses_pagos = int(meses_equivalentes)
+            
+            db.session.commit()
+            
+            # Feedback detalhado
+            if valor > valor_parcela * 1.1:  # 10% de margem para amortização
+                extra = valor - valor_parcela
+                flash(f'💰 Amortização registrada! R$ {valor:.2f} abatido (extra: R$ {extra:.2f}). Saldo: R$ {saldo_restante:.2f}', 'success')
+            elif valor < valor_parcela * 0.9:  # Pagamento parcial
+                flash(f'⚠️ Pagamento parcial: R$ {valor:.2f} de R$ {valor_parcela:.2f}. Saldo: R$ {saldo_restante:.2f}', 'warning')
+            else:
+                flash(f'✅ Parcela registrada! R$ {valor:.2f}. Total pago: R$ {novo_valor_pago:.2f}. Saldo: R$ {saldo_restante:.2f}', 'success')
+        else:
+            # ===== META DE GUARDAR =====
+            if valor <= 0:
+                flash('Informe um valor maior que zero.', 'warning')
+                return redirect(url_for('metas'))
+            
+            goal.valor_atual = float(goal.valor_atual or 0) + valor
+            falta = max(0, float(goal.valor_alvo or 0) - goal.valor_atual)
+            
+            db.session.commit()
+            
+            if falta <= 0:
+                flash(f'🎉 Parabéns! Meta "{goal.descricao}" atingida! Total: R$ {goal.valor_atual:.2f}', 'success')
+            else:
+                flash(f'💰 R$ {valor:.2f} adicionado! Total: R$ {goal.valor_atual:.2f}. Faltam: R$ {falta:.2f}', 'success')
+                
+    except ValueError as e:
+        flash(f'Erro: valor inválido. Use apenas números.', 'danger')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao atualizar meta: {e}', 'danger')
+    
     return redirect(url_for('metas'))
 
 @app.route('/relatorio_anual')
 @login_required
 def relatorio_anual():
-    """Relatório anual"""
-    ano = int(request.args.get('filtro_ano', datetime.now().year))
+    """Relatório anual com persistência de ano"""
+    hoje = datetime.now()
+    session.permanent = True
+    
+    # Gerencia filtro de ano
+    arg_ano = request.args.get('filtro_ano')
+    if arg_ano:
+        # Usuário selecionou um ano específico
+        ano = int(arg_ano)
+        current_user.last_year_viewed = ano
+        db.session.commit()
+        session['last_year'] = ano
+    else:
+        # Recupera ano salvo (DB > Session > Mês do Dashboard > Ano Atual)
+        saved_db = current_user.last_year_viewed
+        saved_sess = session.get('last_year')
+        
+        # Se não tem ano salvo, tenta extrair do mês do Dashboard
+        if not saved_db and not saved_sess and current_user.last_month_viewed:
+            try:
+                # Extrai ano do filtro de mês (YYYY-MM)
+                ano = int(current_user.last_month_viewed.split('-')[0])
+            except:
+                ano = hoje.year
+        elif saved_db:
+            ano = saved_db
+        elif saved_sess:
+            ano = saved_sess
+        else:
+            ano = hoje.year
+    
     res, te, ts, tsal, lbs, e, s, sl, _ = get_yearly_finance_data(ano, current_user.id)
     return render_template('relatorio.html',
         active_page='relatorio',
@@ -1427,13 +1880,53 @@ def logout():
 
 
 # ============================================
-# INICIALIZAÇÃO DO BANCO DE DADOS
+# INICIALIZAÇÃO E MIGRAÇÃO DO BANCO DE DADOS
 # ============================================
+def migrate_add_columns():
+    """Adiciona colunas novas que podem não existir em bancos existentes"""
+    try:
+        from sqlalchemy import text
+        
+        migrations = [
+            # Colunas para Goal (metas de dívida)
+            ("goals", "tipo_meta", "VARCHAR(20) DEFAULT 'acumular'"),
+            ("goals", "valor_parcela", "FLOAT DEFAULT 0"),
+            ("goals", "total_meses", "INTEGER DEFAULT 0"),
+            ("goals", "meses_pagos", "INTEGER DEFAULT 0"),
+            ("goals", "aporte_extra", "FLOAT DEFAULT 0"),
+            ("goals", "valor_aporte_mensal", "FLOAT DEFAULT 0"),
+            ("goals", "lancamento_fixo_id", "INTEGER"),
+            # Colunas para Transaction (vínculo com metas)
+            ("transactions", "meta_id", "INTEGER"),
+            ("transactions", "tipo_contribuicao", "VARCHAR(20)"),
+        ]
+        
+        for table, column, col_type in migrations:
+            try:
+                # Tenta adicionar a coluna (ignora erro se já existir)
+                sql = f"ALTER TABLE {table} ADD COLUMN {column} {col_type}"
+                db.session.execute(text(sql))
+                db.session.commit()
+                print(f"  ✅ Coluna '{column}' adicionada em '{table}'")
+            except Exception as e:
+                db.session.rollback()
+                if 'duplicate column' in str(e).lower() or 'already exists' in str(e).lower():
+                    print(f"  ⏭️  Coluna '{column}' já existe em '{table}'")
+                else:
+                    # Pode ser outro erro, ignoramos para SQLite
+                    pass
+    except Exception as e:
+        print(f"  ⚠️  Migração automática não disponível: {e}")
+
 def init_db():
     """Cria todas as tabelas do banco de dados e usuário admin padrão"""
     with app.app_context():
         db.create_all()
         print("✅ Banco de dados inicializado com sucesso!")
+        
+        # Executa migrações de colunas
+        print("🔄 Verificando migrações...")
+        migrate_add_columns()
         
         # Cria usuário admin padrão se não existir
         admin = User.query.filter_by(username='admin').first()

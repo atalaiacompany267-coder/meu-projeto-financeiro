@@ -6,9 +6,9 @@
 {% block page_subtitle %}Análise financeira de {{ ano_atual }}{% endblock %}
 
 {% block navbar_extra %}
-<form action="{{ url_for('relatorio_anual') }}" method="GET" class="d-flex gap-2 me-3">
-    <input type="number" name="filtro_ano" class="form-control" value="{{ ano_atual }}" min="2020" max="2030" style="width: 100px;">
-    <button class="btn btn-primary" type="submit">
+<form action="{{ url_for('relatorio_anual') }}" method="GET" class="d-flex" style="display: flex !important; align-items: center !important; gap: 8px !important; margin: 0 !important; flex-shrink: 0 !important;">
+    <input type="number" name="filtro_ano" class="form-control" value="{{ ano_atual }}" min="2020" max="2035" placeholder="Ano" style="min-width: 100px; max-width: 120px; text-align: center;">
+    <button class="btn btn-primary" type="submit" title="Filtrar">
         <i class="fas fa-filter"></i>
     </button>
 </form>

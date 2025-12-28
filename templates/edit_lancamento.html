@@ -58,6 +58,20 @@
                             <input type="number" step="0.01" name="valor" class="form-control" 
                                    value="{{ '%.2f'|format(lancamento.Valor|abs) }}" required>
                         </div>
+                        <div class="col-12">
+                            <label class="form-label">
+                                <i class="fas fa-link me-1 text-info"></i>Vincular à Meta/Dívida
+                            </label>
+                            <select name="meta_id" class="form-select">
+                                <option value="">Nenhuma</option>
+                                {% for meta in metas_dropdown %}
+                                <option value="{{ meta[0] }}" {% if lancamento.MetaID == meta[0] %}selected{% endif %}>
+                                    {{ meta[1] }}{% if meta[2] == 'quitar' %} (Dívida){% else %} (Meta){% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Ao confirmar o lançamento, o valor será automaticamente atualizado na meta/dívida vinculada.</small>
+                        </div>
                     </div>
                     
                     <div class="d-flex gap-2 mt-4">

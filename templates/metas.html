@@ -3,24 +3,482 @@
 {% block title %}Metas - Controle Financeiro{% endblock %}
 
 {% block page_title %}Metas & Objetivos{% endblock %}
-{% block page_subtitle %}Acompanhe suas metas financeiras{% endblock %}
+{% block page_subtitle %}Acompanhe suas metas financeiras e dívidas{% endblock %}
 
 {% block content %}
+<style>
+    /* ========================================
+       CORREÇÃO DE BLOQUEIO - METAS PAGE
+       Garante que TODOS elementos sejam clicáveis
+       ======================================== */
+    
+    /* Reset - remove qualquer bloqueio herdado */
+    .meta-form-card,
+    .meta-form-card *,
+    .meta-card,
+    .meta-card *,
+    .tipo-meta-selector,
+    .tipo-meta-option,
+    .campos-guardar,
+    .campos-quitar,
+    #addValueModal,
+    #addValueModal * {
+        pointer-events: auto !important;
+    }
+    
+    /* Estilo dos tipos de meta */
+    .tipo-meta-selector {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .tipo-meta-option {
+        flex: 1;
+        padding: 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        cursor: pointer !important;
+        transition: all 0.3s ease;
+        text-align: center;
+        background: var(--bg-secondary);
+        position: relative;
+        z-index: 2;
+    }
+    
+    .tipo-meta-option:hover {
+        border-color: var(--color-primary);
+        background: var(--bg-hover);
+    }
+    
+    .tipo-meta-option.active {
+        border-color: var(--color-primary);
+        background: rgba(52, 152, 219, 0.1);
+    }
+    
+    .tipo-meta-option.active.guardar {
+        border-color: var(--color-success);
+        background: rgba(46, 204, 113, 0.1);
+    }
+    
+    .tipo-meta-option.active.quitar {
+        border-color: var(--color-danger);
+        background: rgba(231, 76, 60, 0.1);
+    }
+    
+    .tipo-meta-option i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        display: block;
+        pointer-events: none !important;
+    }
+    
+    .tipo-meta-option.guardar i {
+        color: var(--color-success);
+    }
+    
+    .tipo-meta-option.quitar i {
+        color: var(--color-danger);
+    }
+    
+    .tipo-meta-option input[type="radio"] {
+        display: none;
+    }
+    
+    /* Campos condicionais */
+    .campos-guardar,
+    .campos-quitar {
+        display: none;
+    }
+    
+    .campos-guardar.active,
+    .campos-quitar.active {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    /* Cards de meta */
+    .meta-card {
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+    
+    .meta-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .meta-card.tipo-quitar {
+        border-left: 4px solid var(--color-danger);
+    }
+    
+    .meta-card.tipo-acumular {
+        border-left: 4px solid var(--color-success);
+    }
+    
+    .meta-progress {
+        height: 10px;
+        border-radius: 5px;
+        background: var(--bg-secondary);
+        overflow: hidden;
+    }
+    
+    .meta-progress .progress-bar {
+        background: linear-gradient(90deg, var(--color-primary), var(--color-success));
+        transition: width 0.5s ease;
+    }
+    
+    .meta-card.tipo-quitar .meta-progress .progress-bar {
+        background: linear-gradient(90deg, var(--color-warning), var(--color-danger));
+    }
+    
+    .meta-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+    
+    .meta-badge.guardar {
+        background: rgba(46, 204, 113, 0.2);
+        color: var(--color-success);
+    }
+    
+    .meta-badge.quitar {
+        background: rgba(231, 76, 60, 0.2);
+        color: var(--color-danger);
+    }
+    
+    /* Info de dívida */
+    .divida-info {
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        padding: 0.75rem;
+        margin-top: 0.5rem;
+    }
+    
+    .divida-info small {
+        display: block;
+        color: var(--text-secondary);
+    }
+    
+    .divida-info strong {
+        color: var(--text-primary);
+    }
+    
+    /* Garantir que botões são clicáveis */
+    .meta-card .btn,
+    .meta-card .dropdown-toggle,
+    .meta-card .dropdown-item,
+    .meta-form-card .btn {
+        cursor: pointer !important;
+        pointer-events: auto !important;
+        position: relative;
+        z-index: 5;
+    }
+    
+    /* ========================================
+       MODAL - Correção TOTAL de Centralização
+       ======================================== */
+    
+    /* Remove qualquer CSS conflitante do Bootstrap */
+    .modal-open {
+        overflow: hidden !important;
+    }
+    
+    /* Backdrop/Overlay */
+    .custom-modal-backdrop {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background-color: rgba(0, 0, 0, 0.7) !important;
+        z-index: 9999 !important;
+        display: none;
+    }
+    
+    .custom-modal-backdrop.show {
+        display: block !important;
+    }
+    
+    /* Modal Container - Centralização Forçada */
+    .custom-modal {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        display: none;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 10000 !important;
+        padding: 1rem !important;
+    }
+    
+    .custom-modal.show {
+        display: flex !important;
+    }
+    
+    /* Modal Content Box */
+    .custom-modal-content {
+        background: var(--bg-primary, #ffffff) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5) !important;
+        max-width: 500px !important;
+        width: 100% !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important;
+        animation: customModalSlideIn 0.3s ease-out !important;
+        pointer-events: auto !important;
+    }
+    
+    @keyframes customModalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-30px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    .custom-modal-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 1.25rem 1.5rem !important;
+        border-bottom: 1px solid var(--border-color, #dee2e6) !important;
+        background: var(--bg-secondary, #f8f9fa) !important;
+        border-radius: 16px 16px 0 0 !important;
+    }
+    
+    .custom-modal-header h5 {
+        margin: 0 !important;
+        font-size: 1.1rem !important;
+    }
+    
+    .custom-modal-close {
+        background: none !important;
+        border: none !important;
+        font-size: 1.5rem !important;
+        cursor: pointer !important;
+        color: var(--text-secondary, #6c757d) !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+        transition: color 0.2s !important;
+    }
+    
+    .custom-modal-close:hover {
+        color: var(--color-danger, #dc3545) !important;
+    }
+    
+    .custom-modal-body {
+        padding: 1.5rem !important;
+    }
+    
+    .custom-modal-footer {
+        display: flex !important;
+        justify-content: flex-end !important;
+        gap: 0.75rem !important;
+        padding: 1rem 1.5rem !important;
+        border-top: 1px solid var(--border-color, #dee2e6) !important;
+        background: var(--bg-secondary, #f8f9fa) !important;
+        border-radius: 0 0 16px 16px !important;
+    }
+    
+    /* Garantir que todos os elementos são clicáveis */
+    .custom-modal button,
+    .custom-modal input,
+    .custom-modal select,
+    .custom-modal a {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+    }
+    
+    /* Modal de Edição - Largura maior */
+    .custom-modal-content.custom-modal-lg {
+        max-width: 650px !important;
+    }
+    
+    .custom-modal input[type="number"] {
+        font-size: 1.1rem !important;
+        padding: 0.6rem 0.8rem !important;
+    }
+    
+    /* ========================================
+       BOTÕES DE AÇÃO DOS CARDS DE META
+       ======================================== */
+    
+    /* Container dos botões de ação - LINHA HORIZONTAL */
+    .meta-action-buttons {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 10px !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+    
+    /* Botões com mesmo tamanho e estilo */
+    .meta-action-buttons .btn {
+        flex: 1 !important;
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.8rem !important;
+        white-space: nowrap !important;
+    }
+    
+    /* Cores específicas dos botões */
+    .meta-action-buttons .btn-success {
+        background-color: #28a745 !important;
+        border-color: #28a745 !important;
+        color: white !important;
+    }
+    
+    .meta-action-buttons .btn-success:hover {
+        background-color: #218838 !important;
+        border-color: #1e7e34 !important;
+    }
+    
+    .meta-action-buttons .btn-outline-secondary {
+        background-color: white !important;
+        border-color: #6c757d !important;
+        color: #6c757d !important;
+    }
+    
+    .meta-action-buttons .btn-outline-secondary:hover {
+        background-color: #6c757d !important;
+        color: white !important;
+    }
+    
+    .meta-action-buttons .btn-danger {
+        background-color: #dc3545 !important;
+        border-color: #dc3545 !important;
+        color: white !important;
+    }
+    
+    .meta-action-buttons .btn-danger:hover {
+        background-color: #c82333 !important;
+        border-color: #bd2130 !important;
+    }
+    
+    /* Responsivo - tablets */
+    @media (max-width: 992px) {
+        .meta-action-buttons .btn {
+            padding: 0.4rem 0.5rem !important;
+            font-size: 0.75rem !important;
+        }
+        
+        .meta-action-buttons .btn i {
+            margin-right: 0.25rem !important;
+        }
+    }
+    
+    /* Container do card */
+    .meta-card .border-top {
+        padding-top: 0.75rem !important;
+    }
+    
+    /* Dropdown de ações (menu 3 pontinhos) */
+    .meta-card .dropdown-menu {
+        min-width: 180px;
+    }
+    
+    .meta-card .dropdown-item {
+        padding: 0.5rem 1rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .meta-card .dropdown-item i {
+        width: 20px;
+    }
+    
+    /* ========================================
+       MODAL DE EDIÇÃO - CENTRALIZAÇÃO PERFEITA
+       ======================================== */
+    
+    /* Garantir que o modal de edição esteja centralizado */
+    #customEditModal {
+        padding: 1rem !important;
+    }
+    
+    #customEditModal .custom-modal-content {
+        margin: auto !important;
+    }
+    
+    /* Inputs menores no modal de edição */
+    #customEditModal input[type="number"],
+    #customEditModal input[type="text"] {
+        font-size: 1rem !important;
+        padding: 0.5rem 0.75rem !important;
+    }
+    
+    /* Info de vínculo */
+    .vinculo-info {
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .vinculo-info i {
+        color: var(--color-info);
+    }
+    
+    /* Badge de vinculação no card */
+    .meta-vinculo-badge {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        background: rgba(52, 152, 219, 0.2);
+        color: var(--color-info);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+</style>
+
 <!-- New Goal Form -->
-<div class="card mb-4">
+<div class="card mb-4 meta-form-card">
     <div class="card-header">
-        <i class="fas fa-plus-circle me-2"></i>Nova Meta
+        <i class="fas fa-plus-circle me-2"></i>Nova Meta ou Dívida
     </div>
     <div class="card-body">
-        <form action="{{ url_for('add_meta') }}" method="POST">
-            <div class="row g-3 align-items-end">
-                <div class="col-md-5">
+        <form action="{{ url_for('add_meta') }}" method="POST" id="formNovaMeta">
+            <!-- Seleção do Tipo de Meta -->
+            <div class="tipo-meta-selector mb-4">
+                <label class="tipo-meta-option guardar active" onclick="selecionarTipo('acumular')">
+                    <input type="radio" name="tipo_meta" value="acumular" checked>
+                    <i class="fas fa-piggy-bank"></i>
+                    <strong>Guardar Dinheiro</strong>
+                    <small class="text-muted d-block">Reserva, viagem, compra...</small>
+                </label>
+                <label class="tipo-meta-option quitar" onclick="selecionarTipo('quitar')">
+                    <input type="radio" name="tipo_meta" value="quitar">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <strong>Quitar Dívida</strong>
+                    <small class="text-muted d-block">Financiamento, empréstimo...</small>
+                </label>
+            </div>
+            
+            <!-- Campos para GUARDAR DINHEIRO -->
+            <div class="row g-3 align-items-end campos-guardar active" id="camposGuardar">
+                <div class="col-md-4">
                     <label class="form-label">Nome da Meta</label>
-                    <input type="text" name="descricao" class="form-control" placeholder="Ex: Carro Novo, Viagem, Reserva de Emergência" required>
+                    <input type="text" name="descricao" class="form-control" placeholder="Ex: Carro Novo, Viagem, Reserva" required id="descricaoGuardar">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label">Valor Alvo (R$)</label>
-                    <input type="number" step="0.01" name="valor_alvo" class="form-control" placeholder="10000.00" required>
+                    <input type="number" step="0.01" name="valor_alvo" class="form-control" placeholder="10000.00" id="valorAlvo">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Aporte Mensal (R$)</label>
+                    <input type="number" step="0.01" name="valor_aporte_mensal" class="form-control" placeholder="500.00" id="valorAporteMensal">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Já guardado (R$)</label>
@@ -31,6 +489,75 @@
                         <i class="fas fa-plus me-1"></i> Criar Meta
                     </button>
                 </div>
+                <!-- Linha 2: Vínculo com lançamento fixo -->
+                <div class="col-md-6">
+                    <label class="form-label">
+                        <i class="fas fa-link me-1 text-info"></i>Vincular a Lançamento (opcional)
+                    </label>
+                    <select name="lancamento_fixo_id" class="form-select" id="selectFixoGuardar">
+                        <option value="">-- Nenhum (atualização manual) --</option>
+                        <optgroup label="📌 Lançamentos Fixos">
+                            {% for fixo in fixos_dropdown %}
+                            <option value="{{ fixo[0] }}">{{ fixo[1] }} - R$ {{ "%.2f"|format(fixo[2]) }}</option>
+                            {% endfor %}
+                        </optgroup>
+                        <optgroup label="📝 Lançamentos Recentes">
+                            {% for lanc in lancamentos_dropdown %}
+                            <option value="lanc_{{ lanc[0] }}">{{ lanc[1] }} - R$ {{ "%.2f"|format(lanc[2]) }}</option>
+                            {% endfor %}
+                        </optgroup>
+                    </select>
+                    <small class="text-muted">Se vinculado, a meta será atualizada automaticamente ao confirmar o lançamento</small>
+                </div>
+            </div>
+            
+            <!-- Campos para QUITAR DÍVIDA -->
+            <div class="row g-3 align-items-end campos-quitar" id="camposQuitar">
+                <div class="col-md-3">
+                    <label class="form-label">Nome da Dívida</label>
+                    <input type="text" name="descricao_quitar" class="form-control" placeholder="Ex: Financiamento Casa" id="descricaoQuitar">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Valor Total (R$)</label>
+                    <input type="number" step="0.01" name="valor_alvo_quitar" class="form-control" placeholder="100000.00" id="valorTotalQuitar">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Valor Parcela (R$)</label>
+                    <input type="number" step="0.01" name="valor_parcela" class="form-control" placeholder="1500.00" id="valorParcela">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Total de Meses</label>
+                    <input type="number" name="total_meses" class="form-control" placeholder="60" id="totalMeses">
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label">Já Pagos</label>
+                    <input type="number" name="meses_pagos" class="form-control" value="0" placeholder="0">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="fas fa-plus me-1"></i> Criar Dívida
+                    </button>
+                </div>
+                <!-- Linha 2: Vínculo com lançamento fixo -->
+                <div class="col-md-6">
+                    <label class="form-label">
+                        <i class="fas fa-link me-1 text-info"></i>Vincular a Lançamento (opcional)
+                    </label>
+                    <select name="lancamento_fixo_id_quitar" class="form-select" id="selectFixoQuitar">
+                        <option value="">-- Nenhum (atualização manual) --</option>
+                        <optgroup label="📌 Lançamentos Fixos">
+                            {% for fixo in fixos_dropdown %}
+                            <option value="{{ fixo[0] }}">{{ fixo[1] }} - R$ {{ "%.2f"|format(fixo[2]) }}</option>
+                            {% endfor %}
+                        </optgroup>
+                        <optgroup label="📝 Lançamentos Recentes">
+                            {% for lanc in lancamentos_dropdown %}
+                            <option value="lanc_{{ lanc[0] }}">{{ lanc[1] }} - R$ {{ "%.2f"|format(lanc[2]) }}</option>
+                            {% endfor %}
+                        </optgroup>
+                    </select>
+                    <small class="text-muted">Se vinculado, a parcela será registrada automaticamente ao confirmar o lançamento</small>
+                </div>
             </div>
         </form>
     </div>
@@ -39,13 +566,32 @@
 <!-- Goals Grid -->
 <div class="row g-4">
     {% for id, m in metas %}
+    {% set tipo = m.tipo_meta|default('acumular') %}
+    {% set is_divida = tipo == 'quitar' %}
+    
     <div class="col-md-6 col-lg-4">
-        <div class="card meta-card h-100">
+        <div class="card meta-card h-100 tipo-{{ tipo }}">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
-                        <h5 class="card-title mb-1">{{ m.descricao }}</h5>
-                        <small class="text-muted">Meta financeira</small>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            {% if is_divida %}
+                            <i class="fas fa-file-invoice-dollar text-danger"></i>
+                            {% else %}
+                            <i class="fas fa-piggy-bank text-success"></i>
+                            {% endif %}
+                            <h5 class="card-title mb-0">{{ m.descricao }}</h5>
+                        </div>
+                        <div class="d-flex flex-wrap align-items-center gap-2 mt-1">
+                            <span class="meta-badge {{ 'quitar' if is_divida else 'guardar' }}">
+                                {{ 'Dívida' if is_divida else 'Meta' }}
+                            </span>
+                            {% if m.lancamento_fixo_nome %}
+                            <span class="meta-vinculo-badge">
+                                <i class="fas fa-link"></i> {{ m.lancamento_fixo_nome }}
+                            </span>
+                            {% endif %}
+                        </div>
                     </div>
                     <div class="dropdown">
                         <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
@@ -53,16 +599,26 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li>
-                                <a class="dropdown-item text-success" href="#" 
-                                   onclick="openAddValueModal('{{ id }}', '{{ m.descricao }}')">
+                                <a class="dropdown-item text-{{ 'danger' if is_divida else 'success' }}" href="#" 
+                                   onclick="openAddValueModal('{{ id }}', '{{ m.descricao }}', '{{ tipo }}', '{{ m.valor_parcela }}')">
+                                    {% if is_divida %}
+                                    <i class="fas fa-money-bill-wave me-2"></i>Registrar Pagamento
+                                    {% else %}
                                     <i class="fas fa-plus-circle me-2"></i>Adicionar Valor
+                                    {% endif %}
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-primary" href="#" 
+                                   onclick="openEditModal('{{ id }}', '{{ m.descricao }}', '{{ tipo }}', '{{ m.valor_alvo }}', '{{ m.valor_atual }}', '{{ m.valor_parcela }}', '{{ m.total_meses }}', '{{ m.valor_aporte_mensal }}', '{{ m.lancamento_fixo_id or '' }}')">
+                                    <i class="fas fa-pencil-alt me-2"></i>Editar
                                 </a>
                             </li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <a class="dropdown-item text-danger" href="{{ url_for('delete_meta', id=id) }}" 
-                                   onclick="return confirm('Tem certeza que deseja excluir esta meta?')">
-                                    <i class="fas fa-trash me-2"></i>Excluir Meta
+                                   onclick="return confirm('Tem certeza que deseja excluir?')">
+                                    <i class="fas fa-trash me-2"></i>Excluir
                                 </a>
                             </li>
                         </ul>
@@ -70,11 +626,16 @@
                 </div>
                 
                 <!-- Progress -->
-                {% set percentual = ((m.valor_atual / m.valor_alvo) * 100) if m.valor_alvo > 0 else 0 %}
+                {% if is_divida %}
+                    {% set percentual = ((m.valor_atual / m.valor_alvo) * 100) if m.valor_alvo > 0 else 0 %}
+                {% else %}
+                    {% set percentual = ((m.valor_atual / m.valor_alvo) * 100) if m.valor_alvo > 0 else 0 %}
+                {% endif %}
+                
                 <div class="mb-3">
                     <div class="d-flex justify-content-between mb-2">
                         <span class="small text-muted">Progresso</span>
-                        <span class="small fw-bold text-{{ 'success' if percentual >= 100 else 'primary' }}">
+                        <span class="small fw-bold text-{{ 'success' if percentual >= 100 else ('danger' if is_divida else 'primary') }}">
                             {{ "%.1f"|format(percentual) }}%
                         </span>
                     </div>
@@ -87,6 +648,46 @@
                 </div>
                 
                 <!-- Values -->
+                {% if is_divida %}
+                <!-- Informações de Dívida - SALDO REAL -->
+                {% set saldo_restante = (m.valor_alvo - m.valor_atual) if (m.valor_alvo - m.valor_atual) > 0 else 0 %}
+                {% set meses_restantes_calc = ((saldo_restante / m.valor_parcela)|round(0, 'ceil')|int) if m.valor_parcela > 0 else 0 %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <small class="text-muted d-block">Já Pago</small>
+                        <span class="fw-bold text-success privacy-mask">R$ {{ "%.2f"|format(m.valor_atual) }}</span>
+                    </div>
+                    <div class="text-center">
+                        <small class="text-muted d-block">Saldo Devedor</small>
+                        <span class="fw-bold text-danger privacy-mask">R$ {{ "%.2f"|format(saldo_restante) }}</span>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted d-block">Parcela Base</small>
+                        <span class="fw-bold privacy-mask">R$ {{ "%.2f"|format(m.valor_parcela) }}</span>
+                    </div>
+                </div>
+                <div class="divida-info">
+                    <div class="d-flex justify-content-between">
+                        <small>Valor Total da Dívida:</small>
+                        <strong class="privacy-mask">R$ {{ "%.2f"|format(m.valor_alvo) }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <small>Meses Equivalentes Pagos:</small>
+                        <strong class="text-success">{{ m.meses_pagos }} / {{ m.total_meses }}</strong>
+                    </div>
+                    {% if saldo_restante > 0 and m.valor_parcela > 0 %}
+                    <div class="d-flex justify-content-between">
+                        <small>Estimativa para quitar:</small>
+                        <strong class="text-info">≈ {{ meses_restantes_calc }} meses</strong>
+                    </div>
+                    {% elif saldo_restante <= 0 %}
+                    <div class="text-center mt-2">
+                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Dívida Quitada!</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <!-- Informações de Meta de Guardar -->
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <small class="text-muted d-block">Guardado</small>
@@ -103,13 +704,42 @@
                         <span class="fw-bold privacy-mask">R$ {{ "%.2f"|format(m.valor_alvo) }}</span>
                     </div>
                 </div>
+                {% if m.valor_aporte_mensal and m.valor_aporte_mensal > 0 %}
+                <div class="vinculo-info mt-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-calendar-alt me-1"></i> Aporte Mensal:</span>
+                        <strong class="text-success privacy-mask">R$ {{ "%.2f"|format(m.valor_aporte_mensal) }}</strong>
+                    </div>
+                    {% set faltam = m.valor_alvo - m.valor_atual %}
+                    {% if faltam > 0 and m.valor_aporte_mensal > 0 %}
+                    {% set meses_restantes = (faltam / m.valor_aporte_mensal)|round(0, 'ceil')|int %}
+                    <small class="text-muted">≈ {{ meses_restantes }} meses para atingir a meta</small>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% endif %}
                 
-                <!-- Quick Add Button -->
+                <!-- Action Buttons Row -->
                 <div class="mt-3 pt-3 border-top">
-                    <button class="btn btn-outline-success btn-sm w-100" 
-                            onclick="openAddValueModal('{{ id }}', '{{ m.descricao }}')">
-                        <i class="fas fa-plus me-1"></i> Adicionar Valor
-                    </button>
+                    <div class="meta-action-buttons">
+                        <button class="btn btn-success btn-sm" 
+                                onclick="openAddValueModal('{{ id }}', '{{ m.descricao }}', '{{ tipo }}', '{{ m.valor_parcela }}')">
+                            {% if is_divida %}
+                            <i class="fas fa-money-bill-wave me-1"></i> Registrar
+                            {% else %}
+                            <i class="fas fa-plus me-1"></i> Adicionar
+                            {% endif %}
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" 
+                                onclick="openEditModal('{{ id }}', '{{ m.descricao }}', '{{ tipo }}', '{{ m.valor_alvo }}', '{{ m.valor_atual }}', '{{ m.valor_parcela }}', '{{ m.total_meses }}', '{{ m.valor_aporte_mensal }}', '{{ m.lancamento_fixo_id or '' }}')">
+                            <i class="fas fa-pencil-alt me-1"></i> Editar
+                        </button>
+                        <a href="{{ url_for('delete_meta', id=id) }}" 
+                           class="btn btn-danger btn-sm"
+                           onclick="return confirm('Tem certeza que deseja excluir esta {{ 'dívida' if is_divida else 'meta' }}?')">
+                            <i class="fas fa-trash me-1"></i> Excluir
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -120,58 +750,434 @@
             <div class="card-body text-center py-5">
                 <i class="fas fa-bullseye fa-4x text-muted mb-3"></i>
                 <h5 class="text-muted">Nenhuma meta cadastrada</h5>
-                <p class="text-muted mb-0">Crie sua primeira meta financeira usando o formulário acima.</p>
+                <p class="text-muted mb-0">Crie sua primeira meta financeira ou registre uma dívida usando o formulário acima.</p>
             </div>
         </div>
     </div>
     {% endfor %}
 </div>
 
-<!-- Add Value Modal -->
-<div class="modal fade" id="addValueModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-plus-circle text-success me-2"></i>
-                    Adicionar Valor
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="{{ url_for('add_valor_meta') }}" method="POST">
-                <div class="modal-body">
-                    <input type="hidden" name="meta_id" id="modal-meta-id">
-                    <p class="text-muted mb-3">
-                        Adicionando valor à meta: <strong id="modal-meta-name"></strong>
-                    </p>
+<!-- Custom Modal de Adicionar Valor (Sem Bootstrap Modal) -->
+<div class="custom-modal-backdrop" id="modalBackdrop" onclick="fecharModal()"></div>
+<div class="custom-modal" id="customAddValueModal">
+    <div class="custom-modal-content" onclick="event.stopPropagation()">
+        <div class="custom-modal-header">
+            <h5 id="modalTitle">
+                <i class="fas fa-plus-circle text-success me-2"></i>
+                Adicionar Valor
+            </h5>
+            <button type="button" class="custom-modal-close" onclick="fecharModal()">&times;</button>
+        </div>
+        <form action="{{ url_for('add_valor_meta') }}" method="POST" id="formAddValor">
+            <div class="custom-modal-body">
+                <input type="hidden" name="meta_id" id="modal-meta-id">
+                <input type="hidden" name="tipo_meta" id="modal-tipo-meta">
+                <p class="text-muted mb-3" id="modalSubtitle">
+                    Adicionando valor à meta: <strong id="modal-meta-name"></strong>
+                </p>
+                
+                <!-- Campos para Meta de Guardar -->
+                <div id="modalCamposGuardar">
                     <div class="mb-3">
-                        <label class="form-label">Quanto você guardou?</label>
-                        <div class="input-group">
+                        <label class="form-label fw-bold">Quanto você guardou?</label>
+                        <div class="input-group input-group-lg">
                             <span class="input-group-text">R$</span>
-                            <input type="number" step="0.01" name="valor" class="form-control form-control-lg" 
-                                   placeholder="100.00" required autofocus>
+                            <input type="number" step="0.01" min="0.01" name="valor" class="form-control" 
+                                   placeholder="0.00" id="modalValor" inputmode="decimal">
+                        </div>
+                        <small class="text-muted">Aceita centavos (ex: 150.50)</small>
+                    </div>
+                </div>
+                
+                <!-- Campos para Dívida -->
+                <div id="modalCamposQuitar" style="display: none;">
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Dica:</strong> Você pode pagar qualquer valor!
+                        <ul class="mb-0 mt-2 small">
+                            <li>Valor maior = amortização (abate mais rápido)</li>
+                            <li>Valor menor = pagamento parcial</li>
+                        </ul>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Valor do pagamento:</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text">R$</span>
+                            <input type="number" step="0.01" min="0.01" name="valor_quitar" class="form-control" 
+                                   placeholder="0.00" id="modalValorQuitar" inputmode="decimal">
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <small class="text-muted">Parcela sugerida: <span id="modalParcelaSugerida">R$ 0,00</span></small>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="usarParcelaSugerida()">
+                                Usar sugerido
+                            </button>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-check me-1"></i> Adicionar
-                    </button>
-                </div>
-            </form>
+            </div>
+            <div class="custom-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="fecharModal()">
+                    <i class="fas fa-times me-1"></i> Cancelar
+                </button>
+                <button type="submit" class="btn btn-success" id="modalBtnSubmit">
+                    <i class="fas fa-check me-1"></i> Confirmar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Custom Modal de Edição de Meta/Dívida -->
+<div class="custom-modal-backdrop" id="editModalBackdrop" onclick="fecharEditModal()"></div>
+<div class="custom-modal" id="customEditModal">
+    <div class="custom-modal-content custom-modal-lg" onclick="event.stopPropagation()">
+        <div class="custom-modal-header">
+            <h5 id="editModalTitle">
+                <i class="fas fa-pencil-alt text-primary me-2"></i>
+                Editar Meta
+            </h5>
+            <button type="button" class="custom-modal-close" onclick="fecharEditModal()">&times;</button>
         </div>
+        <form id="formEditMeta" method="POST">
+            <div class="custom-modal-body">
+                <input type="hidden" name="edit_meta_id" id="edit-meta-id">
+                <input type="hidden" name="edit_tipo_meta" id="edit-tipo-meta">
+                
+                <!-- Nome/Descrição - comum para ambos -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nome</label>
+                    <input type="text" name="descricao" id="edit-descricao" class="form-control" required>
+                </div>
+                
+                <!-- Campos para Meta de Guardar -->
+                <div id="editCamposGuardar">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Meta (R$)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" step="0.01" name="valor_alvo" id="edit-valor-alvo" class="form-control" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Guardado (R$)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" step="0.01" name="valor_atual" id="edit-valor-atual" class="form-control" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Aporte Mensal (R$)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" step="0.01" name="valor_aporte_mensal" id="edit-valor-aporte" class="form-control" placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Campos para Dívida -->
+                <div id="editCamposQuitar" style="display: none;">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Valor da Parcela (R$)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" step="0.01" name="valor_parcela" id="edit-valor-parcela" class="form-control" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Total de Meses</label>
+                            <input type="number" name="total_meses" id="edit-total-meses" class="form-control" placeholder="60">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Já Pago (R$)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" step="0.01" name="valor_atual" id="edit-valor-pago" class="form-control" placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted"><i class="fas fa-info-circle me-1"></i>O valor total da dívida será recalculado (Parcela × Meses)</small>
+                    </div>
+                </div>
+                
+                <!-- Vínculo com Lançamento Fixo - comum para ambos -->
+                <div class="mt-3 pt-3 border-top">
+                    <label class="form-label">
+                        <i class="fas fa-link me-1 text-info"></i>Vincular a Lançamento Fixo
+                    </label>
+                    <select name="lancamento_fixo_id" id="edit-lancamento-fixo" class="form-select">
+                        <option value="">-- Nenhum (atualização manual) --</option>
+                        {% for fixo in fixos_dropdown %}
+                        <option value="{{ fixo[0] }}">{{ fixo[1] }} - R$ {{ "%.2f"|format(fixo[2]) }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="custom-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="fecharEditModal()">
+                    <i class="fas fa-times me-1"></i> Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Salvar Alterações
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function openAddValueModal(metaId, metaName) {
+// Seleção do tipo de meta
+function selecionarTipo(tipo) {
+    // Remove active de todas as opções
+    document.querySelectorAll('.tipo-meta-option').forEach(el => el.classList.remove('active'));
+    
+    // Marca a opção selecionada
+    if (tipo === 'acumular') {
+        document.querySelector('.tipo-meta-option.guardar').classList.add('active');
+        document.querySelector('.tipo-meta-option.guardar input').checked = true;
+        
+        // Mostra campos de guardar
+        document.getElementById('camposGuardar').classList.add('active');
+        document.getElementById('camposQuitar').classList.remove('active');
+        
+        // Ajusta required
+        document.getElementById('descricaoGuardar').required = true;
+        document.getElementById('valorAlvo').required = true;
+        if (document.getElementById('descricaoQuitar')) document.getElementById('descricaoQuitar').required = false;
+        if (document.getElementById('valorTotalQuitar')) document.getElementById('valorTotalQuitar').required = false;
+        if (document.getElementById('valorParcela')) document.getElementById('valorParcela').required = false;
+        if (document.getElementById('totalMeses')) document.getElementById('totalMeses').required = false;
+    } else {
+        document.querySelector('.tipo-meta-option.quitar').classList.add('active');
+        document.querySelector('.tipo-meta-option.quitar input').checked = true;
+        
+        // Mostra campos de quitar
+        document.getElementById('camposGuardar').classList.remove('active');
+        document.getElementById('camposQuitar').classList.add('active');
+        
+        // Ajusta required
+        document.getElementById('descricaoGuardar').required = false;
+        document.getElementById('valorAlvo').required = false;
+        if (document.getElementById('descricaoQuitar')) document.getElementById('descricaoQuitar').required = true;
+        if (document.getElementById('valorTotalQuitar')) document.getElementById('valorTotalQuitar').required = true;
+        if (document.getElementById('valorParcela')) document.getElementById('valorParcela').required = true;
+        if (document.getElementById('totalMeses')) document.getElementById('totalMeses').required = true;
+    }
+}
+
+// Preparar form antes de enviar
+document.getElementById('formNovaMeta').addEventListener('submit', function(e) {
+    const tipoMeta = document.querySelector('input[name="tipo_meta"]:checked').value;
+    
+    if (tipoMeta === 'quitar') {
+        // Copia valores para campos esperados pelo backend
+        const descricaoQuitar = document.getElementById('descricaoQuitar').value;
+        const valorQuitar = document.getElementById('valorTotalQuitar').value;
+        const fixoQuitar = document.getElementById('selectFixoQuitar').value;
+        
+        // Cria campos hidden para enviar
+        if (!document.getElementById('hiddenDescricao')) {
+            const h1 = document.createElement('input');
+            h1.type = 'hidden';
+            h1.name = 'descricao';
+            h1.id = 'hiddenDescricao';
+            this.appendChild(h1);
+        }
+        document.getElementById('hiddenDescricao').value = descricaoQuitar;
+        
+        if (!document.getElementById('hiddenValorAlvo')) {
+            const h2 = document.createElement('input');
+            h2.type = 'hidden';
+            h2.name = 'valor_alvo';
+            h2.id = 'hiddenValorAlvo';
+            this.appendChild(h2);
+        }
+        document.getElementById('hiddenValorAlvo').value = valorQuitar;
+        
+        // Campo de vínculo para dívida
+        if (!document.getElementById('hiddenLancamentoFixoId')) {
+            const h3 = document.createElement('input');
+            h3.type = 'hidden';
+            h3.name = 'lancamento_fixo_id';
+            h3.id = 'hiddenLancamentoFixoId';
+            this.appendChild(h3);
+        }
+        document.getElementById('hiddenLancamentoFixoId').value = fixoQuitar;
+    }
+});
+
+// Modal de adicionar valor - Variáveis globais para parcela sugerida
+let parcelaSugerida = 0;
+
+// Abre o modal customizado
+function openAddValueModal(metaId, metaName, tipoMeta, valorParcela) {
+    console.log('Abrindo modal:', metaId, metaName, tipoMeta, valorParcela);
+    
     document.getElementById('modal-meta-id').value = metaId;
     document.getElementById('modal-meta-name').textContent = metaName;
-    const modal = new bootstrap.Modal(document.getElementById('addValueModal'));
-    modal.show();
+    document.getElementById('modal-tipo-meta').value = tipoMeta;
+    
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSubtitle = document.getElementById('modalSubtitle');
+    const modalBtnSubmit = document.getElementById('modalBtnSubmit');
+    const camposGuardar = document.getElementById('modalCamposGuardar');
+    const camposQuitar = document.getElementById('modalCamposQuitar');
+    const inputValor = document.getElementById('modalValor');
+    const inputValorQuitar = document.getElementById('modalValorQuitar');
+    
+    if (tipoMeta === 'quitar') {
+        parcelaSugerida = parseFloat(valorParcela) || 0;
+        
+        modalTitle.innerHTML = '<i class="fas fa-money-bill-wave text-danger me-2"></i>Registrar Pagamento';
+        modalSubtitle.innerHTML = 'Pagando dívida: <strong>' + metaName + '</strong>';
+        modalBtnSubmit.className = 'btn btn-danger';
+        modalBtnSubmit.innerHTML = '<i class="fas fa-check me-1"></i> Registrar Pagamento';
+        camposGuardar.style.display = 'none';
+        camposQuitar.style.display = 'block';
+        
+        document.getElementById('modalParcelaSugerida').textContent = 'R$ ' + parcelaSugerida.toFixed(2);
+        
+        inputValor.required = false;
+        inputValor.value = '';
+        inputValorQuitar.required = true;
+        inputValorQuitar.value = '';
+    } else {
+        modalTitle.innerHTML = '<i class="fas fa-piggy-bank text-success me-2"></i>Adicionar Valor';
+        modalSubtitle.innerHTML = 'Adicionando à meta: <strong>' + metaName + '</strong>';
+        modalBtnSubmit.className = 'btn btn-success';
+        modalBtnSubmit.innerHTML = '<i class="fas fa-check me-1"></i> Adicionar';
+        camposGuardar.style.display = 'block';
+        camposQuitar.style.display = 'none';
+        
+        inputValor.required = true;
+        inputValor.value = '';
+        inputValorQuitar.required = false;
+        inputValorQuitar.value = '';
+    }
+    
+    // Mostra o modal customizado
+    document.getElementById('modalBackdrop').classList.add('show');
+    document.getElementById('customAddValueModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+    
+    // Foca no input correto
+    setTimeout(function() {
+        if (tipoMeta === 'quitar') {
+            inputValorQuitar.focus();
+        } else {
+            inputValor.focus();
+        }
+    }, 100);
 }
+
+// Fecha o modal customizado
+function fecharModal() {
+    document.getElementById('modalBackdrop').classList.remove('show');
+    document.getElementById('customAddValueModal').classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+// Usa o valor da parcela sugerida
+function usarParcelaSugerida() {
+    const inputValorQuitar = document.getElementById('modalValorQuitar');
+    if (parcelaSugerida > 0) {
+        inputValorQuitar.value = parcelaSugerida.toFixed(2);
+    }
+}
+
+// Preparar formulário do modal antes de enviar
+document.getElementById('formAddValor').addEventListener('submit', function(e) {
+    const tipoMeta = document.getElementById('modal-tipo-meta').value;
+    
+    if (tipoMeta === 'quitar') {
+        const valorQuitar = document.getElementById('modalValorQuitar').value;
+        const inputValor = document.getElementById('modalValor');
+        inputValor.value = valorQuitar;
+    }
+});
+
+// Fechar modal com tecla ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        fecharModal();
+        fecharEditModal();
+    }
+});
+
+// ========================================
+// MODAL DE EDIÇÃO DE META/DÍVIDA
+// ========================================
+
+// Abre o modal de edição
+function openEditModal(metaId, descricao, tipoMeta, valorAlvo, valorAtual, valorParcela, totalMeses, valorAporte, lancamentoFixoId) {
+    console.log('Abrindo modal de edição:', metaId, descricao, tipoMeta);
+    
+    // Define a action do formulário
+    document.getElementById('formEditMeta').action = '/edit_meta/' + metaId;
+    
+    // Preenche campos comuns
+    document.getElementById('edit-meta-id').value = metaId;
+    document.getElementById('edit-tipo-meta').value = tipoMeta;
+    document.getElementById('edit-descricao').value = descricao;
+    
+    // Seleciona o lançamento fixo vinculado
+    const selectFixo = document.getElementById('edit-lancamento-fixo');
+    if (lancamentoFixoId && lancamentoFixoId !== 'None' && lancamentoFixoId !== '') {
+        selectFixo.value = lancamentoFixoId;
+    } else {
+        selectFixo.value = '';
+    }
+    
+    const editModalTitle = document.getElementById('editModalTitle');
+    const camposGuardar = document.getElementById('editCamposGuardar');
+    const camposQuitar = document.getElementById('editCamposQuitar');
+    
+    if (tipoMeta === 'quitar') {
+        // DÍVIDA
+        editModalTitle.innerHTML = '<i class="fas fa-pencil-alt text-danger me-2"></i>Editar Dívida';
+        camposGuardar.style.display = 'none';
+        camposQuitar.style.display = 'block';
+        
+        document.getElementById('edit-valor-parcela').value = parseFloat(valorParcela || 0).toFixed(2);
+        document.getElementById('edit-total-meses').value = parseInt(totalMeses || 0);
+        document.getElementById('edit-valor-pago').value = parseFloat(valorAtual || 0).toFixed(2);
+    } else {
+        // META DE GUARDAR
+        editModalTitle.innerHTML = '<i class="fas fa-pencil-alt text-success me-2"></i>Editar Meta';
+        camposGuardar.style.display = 'block';
+        camposQuitar.style.display = 'none';
+        
+        document.getElementById('edit-valor-alvo').value = parseFloat(valorAlvo || 0).toFixed(2);
+        document.getElementById('edit-valor-atual').value = parseFloat(valorAtual || 0).toFixed(2);
+        document.getElementById('edit-valor-aporte').value = parseFloat(valorAporte || 0).toFixed(2);
+    }
+    
+    // Mostra o modal
+    document.getElementById('editModalBackdrop').classList.add('show');
+    document.getElementById('customEditModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+    
+    // Foca no campo descrição
+    setTimeout(function() {
+        document.getElementById('edit-descricao').focus();
+    }, 100);
+}
+
+// Fecha o modal de edição
+function fecharEditModal() {
+    document.getElementById('editModalBackdrop').classList.remove('show');
+    document.getElementById('customEditModal').classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', function() {
+    selecionarTipo('acumular');
+});
 </script>
 {% endblock %}

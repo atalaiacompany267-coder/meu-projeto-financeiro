@@ -3,28 +3,160 @@
 {% block title %}Dashboard - Controle Financeiro{% endblock %}
 
 {% block page_title %}Dashboard{% endblock %}
-{% block page_subtitle %}{{ mes_extenso }} {{ ano_extenso }}{% endblock %}
 
 {% block navbar_extra %}
-<form action="{{ url_for('dashboard') }}" method="GET" class="d-flex gap-2 me-3">
-    <input type="month" name="filtro_mes" class="form-control" value="{{ filtro_atual }}" style="width: 160px;">
-    <button class="btn btn-primary" type="submit">
+<form action="{{ url_for('dashboard') }}" method="GET" class="d-flex" style="display: flex !important; align-items: center !important; gap: 8px !important; margin: 0 !important; flex-shrink: 0 !important;">
+    <input type="month" name="filtro_mes" class="form-control month-selector" value="{{ filtro_atual }}">
+    <button class="btn btn-primary" type="submit" title="Filtrar">
         <i class="fas fa-filter"></i>
     </button>
 </form>
 {% endblock %}
 
 {% block content %}
-<!-- Stats Cards - Sticky on Mobile -->
-<div class="sticky-stats">
-    <div class="row g-2 g-md-4 mb-4">
-        <div class="col-4 col-md-4">
+<style>
+    /* ========================================
+       TABELA RESPONSIVA - Dashboard
+       ======================================== */
+    
+    /* Forçar linha única na tabela */
+    #lancamentos-table tbody tr td {
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+    }
+    
+    /* Coluna de valor - nunca quebra linha */
+    .col-valor .valor-texto {
+        white-space: nowrap !important;
+    }
+    
+    /* Coluna de categoria com ellipsis */
+    .col-categoria {
+        max-width: 180px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    
+    .col-categoria .categoria-texto {
+        display: inline-block;
+        max-width: 100px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+    }
+    
+    /* Badge de meta */
+    .badge-meta {
+        font-size: 0.55rem !important;
+        vertical-align: middle;
+        padding: 0.15rem 0.35rem !important;
+    }
+    
+    /* Botões de ação - SEMPRE em linha horizontal */
+    .btn-group-acoes {
+        display: inline-flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 3px !important;
+        justify-content: center !important;
+    }
+    
+    .btn-group-acoes .btn {
+        flex-shrink: 0 !important;
+        padding: 0.25rem 0.4rem !important;
+    }
+    
+    .col-acoes {
+        min-width: 100px !important;
+        white-space: nowrap !important;
+    }
+    
+    /* Formulário de novo lançamento responsivo */
+    .form-novo-lancamento .row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+    
+    /* ========================================
+       TABLETS (768px - 1024px)
+       ======================================== */
+    @media (min-width: 768px) and (max-width: 1024px) {
+        /* Esconde badge de meta em tablets menores */
+        .badge-meta {
+            display: none !important;
+        }
+        
+        /* Categoria com menos largura */
+        .col-categoria {
+            max-width: 100px !important;
+        }
+        
+        .col-categoria .categoria-texto {
+            max-width: 80px;
+        }
+        
+        /* Coluna de data mais compacta */
+        .col-data {
+            font-size: 0.8rem;
+        }
+        
+        /* Botões menores */
+        .btn-group-acoes .btn {
+            padding: 0.2rem 0.35rem !important;
+            font-size: 0.7rem !important;
+        }
+        
+        .col-acoes {
+            min-width: 90px !important;
+        }
+    }
+    
+    /* ========================================
+       TABLETS PEQUENOS / LANDSCAPE PHONES
+       ======================================== */
+    @media (max-width: 991px) {
+        /* Esconde badge de meta */
+        .badge-meta {
+            display: none !important;
+        }
+        
+        /* Coluna de categoria mais estreita */
+        .col-categoria .categoria-texto {
+            max-width: 70px;
+        }
+    }
+    
+    /* ========================================
+       MOBILE - Esconde tabela, mostra cards
+       ======================================== */
+    @media (max-width: 767px) {
+        .desktop-table {
+            display: none !important;
+        }
+        
+        .mobile-transaction-cards {
+            display: block !important;
+        }
+    }
+    
+    @media (min-width: 768px) {
+        .mobile-transaction-cards {
+            display: none !important;
+        }
+    }
+</style>
+
+<!-- Stats Cards - Responsive Grid com Espaçamento Adequado -->
+<div class="row g-2 g-md-4" style="margin-bottom: 2rem !important;">
+        <div class="col-12 col-sm-4">
             <div class="card stat-card entrada">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
+                    <div class="d-flex justify-content-between align-items-start flex-column flex-sm-row">
+                        <div class="flex-grow-1" style="min-width: 0;">
                             <p class="stat-label mb-1">Entradas</p>
-                            <h3 class="stat-value privacy-mask mb-0">R$ {{ "%.2f"|format(entrada) }}</h3>
+                            <h3 class="stat-value privacy-mask mb-0" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">R$ {{ "%.2f"|format(entrada) }}</h3>
                             <small class="text-{{ 'success' if trend_ent_pct > 0 else 'danger' }} d-none d-md-inline">
                                 <i class="fas fa-arrow-{{ 'up' if trend_ent_pct > 0 else 'down' }}"></i>
                                 {{ "%.0f"|format(trend_ent_pct|abs) }}%
@@ -37,13 +169,13 @@
                 </div>
             </div>
         </div>
-        <div class="col-4 col-md-4">
+        <div class="col-12 col-sm-4">
             <div class="card stat-card saida">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
+                    <div class="d-flex justify-content-between align-items-start flex-column flex-sm-row">
+                        <div class="flex-grow-1" style="min-width: 0;">
                             <p class="stat-label mb-1">Saídas</p>
-                            <h3 class="stat-value privacy-mask mb-0">R$ {{ "%.2f"|format(saida|abs) }}</h3>
+                            <h3 class="stat-value privacy-mask mb-0" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">R$ {{ "%.2f"|format(saida|abs) }}</h3>
                             <small class="text-{{ 'danger' if trend_sai_pct > 0 else 'success' }} d-none d-md-inline">
                                 <i class="fas fa-arrow-{{ 'up' if trend_sai_pct > 0 else 'down' }}"></i>
                                 {{ "%.0f"|format(trend_sai_pct|abs) }}%
@@ -56,13 +188,13 @@
                 </div>
             </div>
         </div>
-        <div class="col-4 col-md-4">
+        <div class="col-12 col-sm-4">
             <div class="card stat-card saldo">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
+                    <div class="d-flex justify-content-between align-items-start flex-column flex-sm-row">
+                        <div class="flex-grow-1" style="min-width: 0;">
                             <p class="stat-label mb-1">Saldo</p>
-                            <h3 class="stat-value privacy-mask mb-0 text-{{ 'success' if saldo >= 0 else 'danger' }}">
+                            <h3 class="stat-value privacy-mask mb-0 text-{{ 'success' if saldo >= 0 else 'danger' }}" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
                                 R$ {{ "%.2f"|format(saldo) }}
                             </h3>
                             <small class="text-muted d-none d-md-inline">Média: R$ {{ "%.0f"|format(avg_ent - avg_sai) }}</small>
@@ -75,7 +207,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <!-- Charts Row -->
 <div class="row g-4 mb-4">
@@ -91,7 +222,7 @@
                 </div>
                 
                 <!-- Macro Summary (50-30-20) -->
-                <div class="mt-4 pt-3 border-top">
+                <div class="mt-4 pt-3" style="border-top: 1px solid var(--border-color);">
                     <h6 class="mb-3">Regra 50-30-20</h6>
                     {% set tot = entrada if entrada > 0 else 1 %}
                     
@@ -156,14 +287,14 @@
                     <label class="form-label">Data</label>
                     <input type="text" name="data" class="form-control date-mask" value="{{ hoje_br }}" required>
                 </div>
-                <div class="col-md-2">
+                <div class="col-6 col-md-2">
                     <label class="form-label">Tipo</label>
                     <select name="tipo" class="form-select">
                         <option value="SAIDA">Saída</option>
                         <option value="ENTRADA">Entrada</option>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-6 col-md-2">
                     <label class="form-label">Categoria</label>
                     <input name="categoria" class="form-control" list="categorias-list" required placeholder="Ex: Mercado">
                     <datalist id="categorias-list">
@@ -172,7 +303,7 @@
                         {% endfor %}
                     </datalist>
                 </div>
-                <div class="col-md-2">
+                <div class="col-6 col-md-2">
                     <label class="form-label">Classificação</label>
                     <select name="classificacao" class="form-select">
                         <option value="Essenciais">Essenciais</option>
@@ -180,15 +311,22 @@
                         <option value="Investimentos">Investimentos</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">Descrição</label>
-                    <input type="text" name="descricao" class="form-control" placeholder="Opcional">
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Valor (R$)</label>
+                    <input type="number" step="0.01" name="valor" class="form-control" required placeholder="0.00">
                 </div>
-                <div class="col-md-1">
-                    <label class="form-label">Valor</label>
-                    <input type="number" step="0.01" name="valor" class="form-control" required>
+                <div class="col-12 col-md-2">
+                    <label class="form-label">Vincular Meta</label>
+                    <select name="meta_id" class="form-select">
+                        <option value="">Nenhuma</option>
+                        {% for meta in metas_dropdown %}
+                        <option value="{{ meta[0] }}">
+                            {{ meta[1] }}{% if meta[2] == 'quitar' %} (Dívida){% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <div class="col-md-1 d-flex align-items-end">
+                <div class="col-12 col-md-1 d-flex align-items-end">
                     <button type="submit" class="btn btn-success w-100">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -223,9 +361,8 @@
                         <th>Data</th>
                         <th>Tipo</th>
                         <th>Categoria</th>
-                        <th>Descrição</th>
-                        <th class="text-end">Valor</th>
-                        <th class="text-center" style="width: 140px;">Ações</th>
+                        <th class="text-end col-valor">Valor</th>
+                        <th class="text-center col-acoes">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -240,37 +377,46 @@
                                 <i class="fas fa-check"></i>
                             </a>
                         </td>
-                        <td>{{ l.Data }}</td>
+                        <td class="col-data">{{ l.Data }}</td>
                         <td>
                             <span class="badge badge-{{ 'entrada' if l.Tipo == 'ENTRADA' else 'saida' }}">
                                 {{ l.Tipo }}
                             </span>
                         </td>
-                        <td>{{ l.Categoria }}</td>
-                        <td>{{ l.Descrição }}</td>
-                        <td class="text-end privacy-mask fw-bold text-{{ 'success' if l.Valor > 0 else 'danger' }}">
-                            R$ {{ "%.2f"|format(l.Valor|abs) }}
+                        <td class="col-categoria">
+                            <span class="categoria-texto">{{ l.Categoria }}</span>
+                            {% if l.MetaID %}
+                            <span class="badge bg-{{ 'danger' if l.MetaTipo == 'quitar' else 'success' }} ms-1 badge-meta" 
+                                  title="Vinculado a: {{ l.MetaNome }}">
+                                <i class="fas fa-{{ 'file-invoice-dollar' if l.MetaTipo == 'quitar' else 'piggy-bank' }} me-1"></i>{{ l.MetaNome|truncate(15) }}
+                            </span>
+                            {% endif %}
                         </td>
-                        <td class="text-center">
-                            <a href="{{ url_for('pin_lancamento', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
-                               class="btn btn-action btn-outline-warning btn-pin {% if l.Fixado == 'Sim' %}fixado{% endif %}" 
-                               title="Fixar">
-                                <i class="fas fa-thumbtack"></i>
-                            </a>
-                            <a href="{{ url_for('edit_lancamento_form', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
-                               class="btn btn-action btn-outline-primary" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a href="{{ url_for('delete_lancamento', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
-                               class="btn btn-action btn-outline-danger" 
-                               onclick="return confirm('Excluir este lançamento?')" title="Excluir">
-                                <i class="fas fa-trash"></i>
-                            </a>
+                        <td class="text-end col-valor privacy-mask fw-bold text-{{ 'success' if l.Valor > 0 else 'danger' }}">
+                            <span class="valor-texto">R$&nbsp;{{ "%.2f"|format(l.Valor|abs) }}</span>
+                        </td>
+                        <td class="text-center col-acoes">
+                            <div class="btn-group-acoes">
+                                <a href="{{ url_for('pin_lancamento', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
+                                   class="btn btn-action btn-outline-warning btn-pin {% if l.Fixado == 'Sim' %}fixado{% endif %}" 
+                                   title="Fixar">
+                                    <i class="fas fa-thumbtack"></i>
+                                </a>
+                                <a href="{{ url_for('edit_lancamento_form', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
+                                   class="btn btn-action btn-outline-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{{ url_for('delete_lancamento', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
+                                   class="btn btn-action btn-outline-danger" 
+                                   onclick="return confirm('Excluir este lançamento?')" title="Excluir">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
+                        <td colspan="6" class="text-center text-muted py-4">
                             <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
                             Nenhum lançamento neste mês
                         </td>
@@ -298,6 +444,14 @@
                         {{ '+' if l.Valor > 0 else '-' }}R$ {{ "%.2f"|format(l.Valor|abs) }}
                     </div>
                 </div>
+                {% if l.MetaID %}
+                <div class="mb-1">
+                    <span class="badge bg-{{ 'danger' if l.MetaTipo == 'quitar' else 'success' }}" 
+                          style="font-size: 0.6rem;">
+                        <i class="fas fa-{{ 'file-invoice-dollar' if l.MetaTipo == 'quitar' else 'piggy-bank' }} me-1"></i>{{ l.MetaNome }}
+                    </span>
+                </div>
+                {% endif %}
                 <div class="transaction-meta">
                     <span><i class="fas fa-calendar"></i> {{ l.Data }}</span>
                     <span><i class="fas fa-tag"></i> {{ l.Categoria }}</span>
@@ -338,8 +492,8 @@
 
 {% if ask_to_generate %}
 <!-- Modal para gerar fixos -->
-<div class="modal fade" id="gerarFixosModal" tabindex="-1">
-    <div class="modal-dialog">
+<div class="modal fade" id="gerarFixosModal" tabindex="-1" aria-labelledby="gerarFixosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Gerar Lançamentos Fixos</h5>
@@ -363,22 +517,75 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Página carregada - Inicializando gráficos...');
+    
     // ========================================
     // CHARTS
     // ========================================
-    const chartColors = ['#dc3545', '#0d6efd', '#198754', '#ffc107', '#6f42c1', '#20c997', '#fd7e14', '#6c757d'];
     
-    // Category Chart
-    const categoryCtx = document.getElementById('categoryChart');
-    if (categoryCtx) {
-        new Chart(categoryCtx.getContext('2d'), {
+    // Paleta de cores EXPANDIDA - 10 cores distintas para evitar repetição
+    const colorPalette = [
+        '#3498db', // Azul
+        '#2ecc71', // Verde
+        '#f1c40f', // Amarelo
+        '#e74c3c', // Vermelho
+        '#9b59b6', // Roxo
+        '#1abc9c', // Turquesa
+        '#e67e22', // Laranja
+        '#34495e', // Cinza escuro
+        '#7f8c8d', // Cinza médio
+        '#d35400'  // Laranja escuro
+    ];
+    
+    console.log('✅ Paleta de cores definida:', colorPalette);
+    
+    // Função para distribuir cores
+    function getChartColors(count) {
+        const colors = [];
+        for (let i = 0; i < count; i++) {
+            colors.push(colorPalette[i % colorPalette.length]);
+        }
+        return colors;
+    }
+    
+    // Category Chart - Gráfico de Gastos por Categoria
+    try {
+        const categoryCtx = document.getElementById('categoryChart');
+        if (categoryCtx) {
+            console.log('📊 Canvas encontrado:', categoryCtx);
+            
+            const categoryLabels = {{ chart_cats|safe }};
+            const categoryData = {{ chart_vals|safe }};
+            
+            console.log('📊 GRÁFICO DE CATEGORIAS:');
+            console.log('  - Labels:', categoryLabels);
+            console.log('  - Valores:', categoryData);
+            console.log('  - Total de categorias:', categoryLabels.length);
+            
+            if (categoryLabels.length === 0 || categoryData.length === 0) {
+                console.warn('⚠️ Sem dados para o gráfico de categorias');
+            } else {
+                const categoryColors = getChartColors(categoryLabels.length);
+                console.log('  - Cores aplicadas:', categoryColors);
+                
+                // Detectar tema atual para contraste
+                const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+                const textColor = isDarkMode ? '#f8f9fa' : '#2d3748';
+                const borderColor = 'transparent'; // Sem bordas brancas
+                
+                console.log('  - Tema:', isDarkMode ? 'Escuro' : 'Claro');
+                console.log('  - Cor de texto:', textColor);
+                
+                new Chart(categoryCtx.getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: {{ chart_cats|safe }},
+                labels: categoryLabels,
                 datasets: [{
-                    data: {{ chart_vals|safe }},
-                    backgroundColor: chartColors,
-                    borderWidth: 0
+                    data: categoryData,
+                    backgroundColor: categoryColors,
+                    borderColor: borderColor,
+                    borderWidth: 0,
+                    hoverOffset: 8
                 }]
             },
             options: {
@@ -389,13 +596,48 @@ document.addEventListener('DOMContentLoaded', function() {
                         position: 'right',
                         labels: {
                             padding: 15,
-                            usePointStyle: true
+                            usePointStyle: true,
+                            font: {
+                                size: 12,
+                                weight: '500'
+                            },
+                            boxWidth: 12,
+                            boxHeight: 12,
+                            color: textColor
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${label}: R$ ${value.toFixed(2)} (${percentage}%)`;
+                            }
                         }
                     }
                 },
                 cutout: '60%'
             }
         });
+        
+        console.log('✅ Gráfico de categorias criado com sucesso!');
+            }
+        } else {
+            console.error('❌ Canvas #categoryChart não encontrado!');
+        }
+    } catch (error) {
+        console.error('❌ ERRO ao criar gráfico de categorias:', error);
     }
     
     // Daily Chart
