@@ -16,6 +16,59 @@
 {% block content %}
 <style>
     /* ========================================
+       LEGENDA CUSTOMIZADA DO GRÁFICO - GRID 2 COLUNAS
+       ======================================== */
+    
+    /* Container da legenda customizada */
+    #categoryLegend {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        align-content: start !important;
+    }
+    
+    /* Itens da legenda - DINÂMICO: Preto no modo claro, Branco no modo escuro */
+    #categoryLegend div {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        font-size: 11px !important;
+        color: var(--text-color) !important;
+    }
+    
+    #categoryLegend div span {
+        color: var(--text-color) !important;
+    }
+    
+    /* Modo claro: texto preto */
+    [data-theme="light"] #categoryLegend div,
+    [data-theme="light"] #categoryLegend div span {
+        color: #2d3748 !important;
+    }
+    
+    /* Modo escuro: texto branco */
+    [data-theme="dark"] #categoryLegend div,
+    [data-theme="dark"] #categoryLegend div span {
+        color: #FFFFFF !important;
+    }
+    
+    /* Mobile: ajustes de tamanho */
+    @media (max-width: 767px) {
+        #categoryLegend {
+            gap: 6px !important;
+        }
+        
+        #categoryLegend div {
+            font-size: 10px !important;
+        }
+        
+        #categoryLegend div span:first-child {
+            width: 8px !important;
+            height: 8px !important;
+        }
+    }
+    
+    /* ========================================
        TABELA RESPONSIVA - Dashboard
        ======================================== */
     
@@ -457,30 +510,43 @@
             gap: 4px !important;
             margin-left: 0 !important;
             margin-right: auto !important;
-            padding-right: 8px !important;
+            padding-right: 4px !important;
         }
         
         .top-navbar {
             justify-content: space-between !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
         }
         
         .top-navbar .d-flex.align-items-center.gap-3 {
-            gap: 8px !important;
+            gap: 6px !important;
             flex-shrink: 0 !important;
+            margin-right: 6px !important;
         }
         
         /* Botões menores no cabeçalho mobile */
         .btn-privacy-toggle,
         .btn-theme-toggle,
         .btn-actions-toggle {
-            padding: 0.35rem 0.5rem !important;
-            font-size: 0.9rem !important;
+            padding: 0.3rem 0.45rem !important;
+            font-size: 0.85rem !important;
+        }
+        
+        /* Form do filtro mais compacto */
+        form[action*="dashboard"] {
+            gap: 4px !important;
         }
         
         .navbar .month-selector {
-            max-width: 105px !important;
-            font-size: 0.8rem !important;
+            max-width: 100px !important;
+            font-size: 0.75rem !important;
+            padding: 0.25rem 0.4rem !important;
+        }
+        
+        form[action*="dashboard"] .btn-primary {
             padding: 0.3rem 0.5rem !important;
+            font-size: 0.85rem !important;
         }
         
         /* Formulário Mobile: 3 colunas x 2 linhas */
@@ -621,8 +687,13 @@
                 <i class="fas fa-chart-pie me-2"></i>Gastos por Categoria
             </div>
             <div class="card-body">
-                <div style="height: 250px;">
-                    <canvas id="categoryChart"></canvas>
+                <div class="d-flex align-items-start" style="gap: 15px;">
+                    <!-- Gráfico de Pizza -->
+                    <div style="width: 45%; min-width: 120px; height: 200px;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                    <!-- Legenda Customizada em Grid 2 Colunas -->
+                    <div id="categoryLegend" style="flex: 1; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; align-content: start;"></div>
                 </div>
                 
                 <!-- Macro Summary (50-30-20) -->
@@ -972,18 +1043,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const categoryColors = getChartColors(categoryLabels.length);
                 console.log('  - Cores aplicadas:', categoryColors);
                 
-                // Detectar tema atual para contraste
-                const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
-                const textColor = isDarkMode ? '#f8f9fa' : '#2d3748';
-                const borderColor = 'transparent'; // Sem bordas brancas
-                
-                // Legenda sempre à direita (PC e mobile)
-                const isMobile = window.innerWidth < 768;
-                const legendPosition = 'right';
-                
-                console.log('  - Tema:', isDarkMode ? 'Escuro' : 'Claro');
-                console.log('  - Cor de texto:', textColor);
-                console.log('  - Mobile:', isMobile, '- Legenda:', legendPosition);
+                // Criar gráfico sem legenda nativa
                 
                 new Chart(categoryCtx.getContext('2d'), {
             type: 'doughnut',
@@ -992,7 +1052,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 datasets: [{
                     data: categoryData,
                     backgroundColor: categoryColors,
-                    borderColor: borderColor,
+                    borderColor: 'transparent',
                     borderWidth: 0,
                     hoverOffset: 8
                 }]
@@ -1002,18 +1062,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: legendPosition,
-                        labels: {
-                            padding: isMobile ? 8 : 20,
-                            usePointStyle: true,
-                            font: {
-                                size: isMobile ? 10 : 13,
-                                weight: '500'
-                            },
-                            boxWidth: isMobile ? 6 : 15,
-                            boxHeight: isMobile ? 6 : 15,
-                            color: textColor
-                        }
+                        display: false // Desabilitar legenda nativa - usaremos HTML customizado
                     },
                     tooltip: {
                         backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -1039,6 +1088,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 cutout: '60%'
             }
         });
+        
+        // CRIAR LEGENDA HTML CUSTOMIZADA com Grid 2 Colunas Exatas
+        const legendContainer = document.getElementById('categoryLegend');
+        if (legendContainer) {
+            // Função para criar/atualizar a legenda com a cor correta
+            function updateLegend() {
+                const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+                const textColor = isDarkMode ? '#FFFFFF' : '#2d3748';
+                
+                let legendHTML = '';
+                categoryLabels.forEach((label, i) => {
+                    const color = categoryColors[i];
+                    legendHTML += `
+                        <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: ${textColor};">
+                            <span style="width: 10px; height: 10px; border-radius: 50%; background-color: ${color}; flex-shrink: 0;"></span>
+                            <span style="color: ${textColor}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${label}</span>
+                        </div>
+                    `;
+                });
+                legendContainer.innerHTML = legendHTML;
+                console.log('✅ Legenda customizada atualizada (cor: ' + textColor + ')');
+            }
+            
+            // Criar legenda inicial
+            updateLegend();
+            
+            // Observar mudanças no atributo data-theme
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                        updateLegend();
+                    }
+                });
+            });
+            
+            observer.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['data-theme']
+            });
+            
+            console.log('✅ Legenda customizada criada com ' + categoryLabels.length + ' itens em grid 2 colunas');
+        }
         
         console.log('✅ Gráfico de categorias criado com sucesso!');
             }
