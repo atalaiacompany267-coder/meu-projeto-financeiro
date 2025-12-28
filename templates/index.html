@@ -442,11 +442,112 @@
         .mobile-transaction-cards {
             display: block !important;
         }
+        
+        /* Cabeçalho Dashboard - iPhone Ultra-Compacto */
+        .page-title-section h1 {
+            font-size: 1.4rem !important;
+        }
+        
+        .page-title-section .text-muted {
+            font-size: 0.8rem !important;
+        }
+        
+        /* Ícones do cabeçalho ultra-próximos e deslocados para esquerda */
+        .navbar-actions {
+            gap: 4px !important;
+            margin-left: 0 !important;
+            margin-right: auto !important;
+            padding-right: 8px !important;
+        }
+        
+        .top-navbar {
+            justify-content: space-between !important;
+        }
+        
+        .top-navbar .d-flex.align-items-center.gap-3 {
+            gap: 8px !important;
+            flex-shrink: 0 !important;
+        }
+        
+        /* Botões menores no cabeçalho mobile */
+        .btn-privacy-toggle,
+        .btn-theme-toggle,
+        .btn-actions-toggle {
+            padding: 0.35rem 0.5rem !important;
+            font-size: 0.9rem !important;
+        }
+        
+        .navbar .month-selector {
+            max-width: 105px !important;
+            font-size: 0.8rem !important;
+            padding: 0.3rem 0.5rem !important;
+        }
+        
+        /* Formulário Mobile: 3 colunas x 2 linhas */
+        form[action*="add_lancamento"] .row {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 0.5rem !important;
+            align-items: start !important;
+        }
+        
+        /* Todos os campos em 1 coluna cada */
+        form[action*="add_lancamento"] .col-6,
+        form[action*="add_lancamento"] .col-12:nth-child(6) {
+            grid-column: span 1 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            flex: none !important;
+        }
+        
+        /* Botão (+) - Linha 3, largura total */
+        form[action*="add_lancamento"] .col-12:last-child {
+            grid-column: span 3 !important;
+        }
+        
+        /* Inputs menores no mobile */
+        form[action*="add_lancamento"] .form-control,
+        form[action*="add_lancamento"] .form-select {
+            font-size: 0.75rem !important;
+            padding: 0.35rem 0.5rem !important;
+        }
+        
+        form[action*="add_lancamento"] .form-label {
+            font-size: 0.7rem !important;
+            margin-bottom: 0.2rem !important;
+        }
     }
     
     @media (min-width: 768px) {
         .mobile-transaction-cards {
             display: none !important;
+        }
+        
+        /* Formulário PC: 3 colunas x 2 linhas */
+        form[action*="add_lancamento"] .row {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 1rem !important;
+            align-items: start !important;
+        }
+        
+        /* Data, Tipo, Categoria - Linha 1 */
+        form[action*="add_lancamento"] .col-6:nth-child(1),
+        form[action*="add_lancamento"] .col-6:nth-child(2),
+        form[action*="add_lancamento"] .col-6:nth-child(3) {
+            grid-column: span 1 !important;
+        }
+        
+        /* Classificação, Valor, Meta - Linha 2 */
+        form[action*="add_lancamento"] .col-6:nth-child(4),
+        form[action*="add_lancamento"] .col-6:nth-child(5),
+        form[action*="add_lancamento"] .col-12:nth-child(6) {
+            grid-column: span 1 !important;
+        }
+        
+        /* Botão (+) - Linha 3, largura total */
+        form[action*="add_lancamento"] .col-12:last-child {
+            grid-column: span 3 !important;
         }
     }
 </style>
@@ -876,9 +977,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const textColor = isDarkMode ? '#f8f9fa' : '#2d3748';
                 const borderColor = 'transparent'; // Sem bordas brancas
                 
-                // Detectar se é mobile para ajustar posição da legenda
+                // Legenda sempre à direita (PC e mobile)
                 const isMobile = window.innerWidth < 768;
-                const legendPosition = isMobile ? 'bottom' : 'right';
+                const legendPosition = 'right';
                 
                 console.log('  - Tema:', isDarkMode ? 'Escuro' : 'Claro');
                 console.log('  - Cor de texto:', textColor);
@@ -903,14 +1004,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     legend: {
                         position: legendPosition,
                         labels: {
-                            padding: isMobile ? 10 : 15,
+                            padding: isMobile ? 8 : 20,
                             usePointStyle: true,
                             font: {
-                                size: isMobile ? 10 : 12,
+                                size: isMobile ? 10 : 13,
                                 weight: '500'
                             },
-                            boxWidth: isMobile ? 10 : 12,
-                            boxHeight: isMobile ? 10 : 12,
+                            boxWidth: isMobile ? 6 : 15,
+                            boxHeight: isMobile ? 6 : 15,
                             color: textColor
                         }
                     },
