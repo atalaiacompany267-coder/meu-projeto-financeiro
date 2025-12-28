@@ -30,19 +30,17 @@
         white-space: nowrap !important;
     }
     
-    /* Coluna de categoria com ellipsis */
+    /* Coluna de categoria - SEM cortar texto na tabela */
     .col-categoria {
         max-width: 180px !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
+        overflow: visible !important;
     }
     
     .col-categoria .categoria-texto {
         display: inline-block;
         max-width: 100px;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        overflow: visible !important;
         vertical-align: middle;
     }
     
@@ -72,17 +70,164 @@
         white-space: nowrap !important;
     }
     
-    /* Formulário de novo lançamento responsivo */
-    .form-novo-lancamento .row {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: flex-end;
+    /* ========================================
+       FORMULÁRIO DE NOVO LANÇAMENTO - RESPONSIVO
+       Desktop: Grid 3 colunas
+       Tablet: Grid 2 colunas
+       Mobile: Grid 2 ou 1 coluna
+       ======================================== */
+    
+    /* ========================================
+       DESKTOP (> 1024px) - Grid 3 Colunas
+       ======================================== */
+    @media (min-width: 1025px) {
+        /* Desktop: Grid de 3 colunas */
+        form[action*="add_lancamento"] .row {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 15px !important;
+            align-items: start !important;
+        }
+        
+        /* Cada campo ocupa 1 coluna */
+        form[action*="add_lancamento"] .col-md-2,
+        form[action*="add_lancamento"] .col-md-1,
+        form[action*="add_lancamento"] .col-6,
+        form[action*="add_lancamento"] .col-12 {
+            grid-column: span 1 !important;
+            width: 100% !important;
+            max-width: none !important;
+        }
+        
+        /* Botão: ocupa 3 colunas (largura total) */
+        form[action*="add_lancamento"] .col-md-1:last-child {
+            grid-column: span 3 !important;
+        }
+        
+        /* Labels: alinhados à esquerda, acima do campo */
+        form[action*="add_lancamento"] .form-label {
+            font-size: 0.875rem !important;
+            font-weight: 500 !important;
+            margin-bottom: 0.4rem !important;
+            text-align: left !important;
+            display: block !important;
+        }
+        
+        /* Padronização dos inputs e selects */
+        form[action*="add_lancamento"] .form-control,
+        form[action*="add_lancamento"] .form-select {
+            width: 100% !important;
+            height: 40px !important;
+            max-width: none !important;
+            font-size: 0.9rem !important;
+            padding: 0.5rem 0.75rem !important;
+            border-radius: 6px !important;
+            box-sizing: border-box !important;
+        }
+        
+        /* Botão adicionar: grande, verde, retangular, ícone centralizado */
+        form[action*="add_lancamento"] button[type="submit"] {
+            width: 100% !important;
+            height: 48px !important;
+            padding: 0 1.5rem !important;
+            font-size: 1.1rem !important;
+            font-weight: 700 !important;
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            color: white !important;
+            border-radius: 8px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 10px !important;
+        }
+        
+        form[action*="add_lancamento"] button[type="submit"]:hover {
+            background-color: #218838 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.35);
+        }
+        
+        form[action*="add_lancamento"] button[type="submit"] i {
+            font-size: 1.3rem !important;
+        }
     }
     
     /* ========================================
-       TABLETS (768px - 1024px)
+       TABLETS (768px - 1024px) - Grid 2 Colunas
        ======================================== */
     @media (min-width: 768px) and (max-width: 1024px) {
+        /* Tablet: Grid de 2 colunas */
+        form[action*="add_lancamento"] .row {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 15px !important;
+            align-items: start !important;
+        }
+        
+        /* Cada campo ocupa 1 coluna */
+        form[action*="add_lancamento"] .col-md-2,
+        form[action*="add_lancamento"] .col-md-1,
+        form[action*="add_lancamento"] .col-6,
+        form[action*="add_lancamento"] .col-12 {
+            grid-column: span 1 !important;
+            width: 100% !important;
+            max-width: none !important;
+        }
+        
+        /* Botão: ocupa 2 colunas (largura total) */
+        form[action*="add_lancamento"] .col-md-1:last-child {
+            grid-column: span 2 !important;
+        }
+        
+        /* Labels: alinhados à esquerda, acima do campo */
+        form[action*="add_lancamento"] .form-label {
+            font-size: 0.875rem !important;
+            font-weight: 500 !important;
+            margin-bottom: 0.4rem !important;
+            text-align: left !important;
+            display: block !important;
+        }
+        
+        /* Padronização dos inputs e selects */
+        form[action*="add_lancamento"] .form-control,
+        form[action*="add_lancamento"] .form-select {
+            width: 100% !important;
+            height: 40px !important;
+            max-width: none !important;
+            font-size: 0.9rem !important;
+            padding: 0.5rem 0.75rem !important;
+            border-radius: 6px !important;
+            box-sizing: border-box !important;
+        }
+        
+        /* Botão adicionar: grande, verde, retangular, ícone centralizado */
+        form[action*="add_lancamento"] button[type="submit"] {
+            width: 100% !important;
+            height: 48px !important;
+            padding: 0 1.5rem !important;
+            font-size: 1.1rem !important;
+            font-weight: 700 !important;
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            color: white !important;
+            border-radius: 8px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 10px !important;
+        }
+        
+        form[action*="add_lancamento"] button[type="submit"]:hover {
+            background-color: #218838 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.35);
+        }
+        
+        form[action*="add_lancamento"] button[type="submit"] i {
+            font-size: 1.3rem !important;
+        }
+        
         /* Esconde badge de meta em tablets menores */
         .badge-meta {
             display: none !important;
@@ -117,6 +262,16 @@
        TABLETS PEQUENOS / LANDSCAPE PHONES
        ======================================== */
     @media (max-width: 991px) {
+        /* Formulário compacto */
+        form[action*="add_lancamento"] .form-label {
+            font-size: 0.75rem !important;
+        }
+        
+        form[action*="add_lancamento"] .form-control,
+        form[action*="add_lancamento"] .form-select {
+            font-size: 0.8rem !important;
+        }
+        
         /* Esconde badge de meta */
         .badge-meta {
             display: none !important;
@@ -129,9 +284,157 @@
     }
     
     /* ========================================
-       MOBILE - Esconde tabela, mostra cards
+       MOBILE MÉDIO (480px - 767px) - Grid 3 Colunas
        ======================================== */
-    @media (max-width: 767px) {
+    @media (min-width: 480px) and (max-width: 767px) {
+        /* Mobile médio: 3 colunas como especificado */
+        form[action*="add_lancamento"] .row {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 12px !important;
+            align-items: start !important;
+        }
+        
+        /* Cada campo ocupa 1 coluna */
+        form[action*="add_lancamento"] .col-md-2,
+        form[action*="add_lancamento"] .col-md-1,
+        form[action*="add_lancamento"] .col-6,
+        form[action*="add_lancamento"] .col-12 {
+            grid-column: span 1 !important;
+            width: 100% !important;
+            max-width: none !important;
+        }
+        
+        /* Botão: 3 colunas (largura total) */
+        form[action*="add_lancamento"] .col-md-1:last-child {
+            grid-column: span 3 !important;
+        }
+        
+        form[action*="add_lancamento"] .form-label {
+            font-size: 0.8rem !important;
+            font-weight: 500 !important;
+            margin-bottom: 0.3rem !important;
+            text-align: left !important;
+            display: block !important;
+        }
+        
+        /* Padronização dos inputs e selects - width 100% */
+        form[action*="add_lancamento"] .form-control,
+        form[action*="add_lancamento"] .form-select {
+            width: 100% !important;
+            height: 40px !important;
+            max-width: none !important;
+            font-size: 0.85rem !important;
+            padding: 0.5rem 0.6rem !important;
+            border-radius: 6px !important;
+            box-sizing: border-box !important;
+        }
+        
+        /* Botão adicionar: verde, retangular, ícone centralizado */
+        form[action*="add_lancamento"] button[type="submit"] {
+            width: 100% !important;
+            height: 46px !important;
+            padding: 0 1.3rem !important;
+            font-size: 1.05rem !important;
+            font-weight: 700 !important;
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            color: white !important;
+            border-radius: 8px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+        }
+        
+        form[action*="add_lancamento"] button[type="submit"]:hover {
+            background-color: #218838 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.35) !important;
+        }
+        
+        form[action*="add_lancamento"] button[type="submit"] i {
+            font-size: 1.2rem !important;
+        }
+    }
+    
+    /* ========================================
+       MOBILE PEQUENO (< 480px) - Grid 1 Coluna
+       ======================================== */
+    @media (max-width: 479px) {
+        /* Mobile pequeno: 1 coluna */
+        form[action*="add_lancamento"] .row {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+            align-items: start !important;
+        }
+        
+        /* Todos os campos ocupam a coluna única */
+        form[action*="add_lancamento"] .col-md-2,
+        form[action*="add_lancamento"] .col-md-1,
+        form[action*="add_lancamento"] .col-6,
+        form[action*="add_lancamento"] .col-12 {
+            grid-column: span 1 !important;
+            width: 100% !important;
+            max-width: none !important;
+        }
+        
+        /* Botão: 1 coluna (100% largura) */
+        form[action*="add_lancamento"] .col-md-1:last-child {
+            grid-column: span 1 !important;
+        }
+        
+        /* Labels */
+        form[action*="add_lancamento"] .form-label {
+            font-size: 0.85rem !important;
+            font-weight: 500 !important;
+            margin-bottom: 0.3rem !important;
+            text-align: left !important;
+            display: block !important;
+        }
+        
+        /* Padronização dos inputs e selects */
+        form[action*="add_lancamento"] .form-control,
+        form[action*="add_lancamento"] .form-select {
+            width: 100% !important;
+            height: 40px !important;
+            max-width: none !important;
+            font-size: 0.875rem !important;
+            padding: 0.5rem 0.7rem !important;
+            border-radius: 6px !important;
+            box-sizing: border-box !important;
+        }
+        
+        /* Botão adicionar: grande, verde, retangular, ícone centralizado */
+        form[action*="add_lancamento"] button[type="submit"] {
+            grid-column: span 1 !important;
+            width: 100% !important;
+            height: 46px !important;
+            padding: 0 1.5rem !important;
+            font-size: 1.1rem !important;
+            font-weight: 700 !important;
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            color: white !important;
+            border-radius: 8px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+        }
+        
+        form[action*="add_lancamento"] button[type="submit"]:hover {
+            background-color: #218838 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.35) !important;
+        }
+        
+        form[action*="add_lancamento"] button[type="submit"] i {
+            font-size: 1.2rem !important;
+        }
+        
+        /* Esconder tabela, mostrar cards */
         .desktop-table {
             display: none !important;
         }
@@ -573,8 +876,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 const textColor = isDarkMode ? '#f8f9fa' : '#2d3748';
                 const borderColor = 'transparent'; // Sem bordas brancas
                 
+                // Detectar se é mobile para ajustar posição da legenda
+                const isMobile = window.innerWidth < 768;
+                const legendPosition = isMobile ? 'bottom' : 'right';
+                
                 console.log('  - Tema:', isDarkMode ? 'Escuro' : 'Claro');
                 console.log('  - Cor de texto:', textColor);
+                console.log('  - Mobile:', isMobile, '- Legenda:', legendPosition);
                 
                 new Chart(categoryCtx.getContext('2d'), {
             type: 'doughnut',
@@ -593,16 +901,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'right',
+                        position: legendPosition,
                         labels: {
-                            padding: 15,
+                            padding: isMobile ? 10 : 15,
                             usePointStyle: true,
                             font: {
-                                size: 12,
+                                size: isMobile ? 10 : 12,
                                 weight: '500'
                             },
-                            boxWidth: 12,
-                            boxHeight: 12,
+                            boxWidth: isMobile ? 10 : 12,
+                            boxHeight: isMobile ? 10 : 12,
                             color: textColor
                         }
                     },

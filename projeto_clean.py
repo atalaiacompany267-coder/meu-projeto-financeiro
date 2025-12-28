@@ -1100,23 +1100,10 @@ def metas():
     """Lista metas do usuário"""
     user_goals = Goal.query.filter_by(user_id=current_user.id).all()
     
-    # Obtém lançamentos fixos do usuário para o dropdown de vínculo
+    # Obtém APENAS lançamentos fixos do usuário para o dropdown de vínculo
+    # Simplificado: sem lançamentos avulsos para evitar confusão
     user_fixos = FixedExpense.query.filter_by(user_id=current_user.id).all()
     fixos_dropdown = [(f.id, f.descricao or f.categoria, f.valor, f.tipo) for f in user_fixos]
-    
-    # Obtém TODOS os lançamentos (fixos + avulsos) para vínculo com metas
-    # Agrupados por categoria para facilitar visualização
-    user_transactions = Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.data.desc()).limit(100).all()
-    lancamentos_dropdown = []
-    for t in user_transactions:
-        tipo_label = "(Fixo)" if t.fixado else "(Avulso)"
-        data_str = t.data.strftime('%d/%m')
-        lancamentos_dropdown.append((
-            t.id,
-            f"{t.categoria} - {data_str} {tipo_label}",
-            abs(t.valor),
-            t.tipo
-        ))
     
     # Converte para formato compatível com template
     metas_list = []
@@ -1144,8 +1131,7 @@ def metas():
         active_page='metas',
         user=current_user.username,
         metas=metas_list,
-        fixos_dropdown=fixos_dropdown,
-        lancamentos_dropdown=lancamentos_dropdown
+        fixos_dropdown=fixos_dropdown
     )
 
 @app.route('/add_meta', methods=['POST'])

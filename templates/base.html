@@ -93,11 +93,20 @@
             flex-wrap: nowrap !important;
             background: var(--bg-card) !important;
             isolation: isolate;
+            overflow-x: hidden !important; /* Prevenir scroll horizontal */
         }
         
         /* GRUPO DA ESQUERDA: Botão de Menu + Título */
         .top-navbar > .d-flex {
             flex: 0 0 auto !important;
+            max-width: 50% !important; /* Limitar largura do título no mobile */
+        }
+        
+        .page-title {
+            font-size: clamp(1rem, 4vw, 1.5rem) !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
         }
         
         /* GRUPO DA DIREITA: Largura limitada */
@@ -227,8 +236,13 @@
         /* MOBILE: ABAIXO DE 768px */
         @media (max-width: 767.98px) {
             .top-navbar {
-                flex-wrap: wrap !important;
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                align-items: center !important;
+                justify-content: space-between !important;
                 padding: 0.75rem 1rem !important;
+                overflow-x: hidden !important;
             }
             
             .btn-theme-toggle,
@@ -242,6 +256,7 @@
                 max-width: 34px !important;
                 max-height: 34px !important;
                 font-size: 0.9rem !important;
+                flex-shrink: 0 !important;
             }
             
             .btn-theme-toggle i,
@@ -252,8 +267,18 @@
             }
             
             .navbar-actions {
-                gap: 8px !important;
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                align-items: center !important;
+                gap: 10px !important;
                 margin-left: auto !important;
+                flex-shrink: 0 !important;
+            }
+            
+            /* Título Dashboard reduzido no mobile */
+            .page-title {
+                font-size: 16px !important;
             }
         }
     </style>
@@ -621,9 +646,20 @@
             z-index: 101;
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin: 0;
-            flex-shrink: 0;
+            gap: 6px !important;
+            margin: 0 !important;
+            flex-shrink: 0 !important;
+        }
+        
+        .navbar-actions form input[type="month"] {
+            flex-shrink: 0 !important;
+        }
+        
+        .navbar-actions form .btn {
+            flex-shrink: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
         
         .navbar-buttons {
@@ -1989,14 +2025,16 @@
            TABLET SMALL TO MOBILE (< 768px)
            ======================================== */
         @media (max-width: 767.98px) {
-            /* Apenas aqui permitir wrap do navbar */
+            /* Navbar: evitar wrap sempre que possível */
             .top-navbar {
-                flex-wrap: wrap;
+                flex-wrap: nowrap !important;
                 padding: 0.75rem 1rem;
                 pointer-events: none !important;
                 position: sticky !important;
                 top: 0 !important;
                 z-index: 1000 !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
             }
             
             /* TODOS os elementos dentro clicáveis */
@@ -2013,11 +2051,12 @@
             }
             
             .navbar-actions {
-                flex-wrap: nowrap;
-                gap: 6px !important;
-                margin-left: auto;
+                flex-wrap: nowrap !important;
+                gap: 5px !important;
+                margin-left: auto !important;
                 width: auto !important;
                 max-width: max-content !important;
+                flex-shrink: 0 !important;
             }
             
             /* GARANTIR que TODOS os botões funcionem no mobile */
@@ -2038,22 +2077,56 @@
                 position: relative !important;
             }
             
-            /* Reduzir seletor de data no mobile */
-            .month-selector {
-                min-width: 120px !important;
-                max-width: 150px !important;
-                font-size: 0.875rem;
+            /* Reduzir seletor de data no mobile - COMPACTO para caber todos os ícones */
+            .month-selector,
+            .navbar-actions form input[type="month"] {
+                min-width: 100px !important;
+                max-width: 100px !important;
+                width: 100px !important;
+                font-size: 0.75rem !important;
+                padding: 0.35rem 1.5rem 0.35rem 0.45rem !important;
                 pointer-events: auto !important;
+            }
+            
+            .navbar-actions form .btn {
+                padding: 0.35rem 0.5rem !important;
+                min-width: 36px !important;
+                height: 36px !important;
             }
             
             .navbar-actions button {
-                padding: 0.5rem 0.65rem;
+                padding: 0.45rem 0.6rem !important;
                 pointer-events: auto !important;
+                min-width: 36px !important;
+                height: 36px !important;
+            }
+            
+            /* Botões de ação menores para caber todos */
+            .btn-privacy-toggle,
+            .btn-theme-toggle,
+            .btn-actions-toggle {
+                width: 36px !important;
+                height: 36px !important;
+                padding: 0.5rem !important;
             }
             
             /* Ajustes urgentes para mobile - Evitar sobreposição */
+            .page-title {
+                font-size: 1.1rem !important;
+                line-height: 1.2 !important;
+                margin-bottom: 0 !important;
+            }
+            
             .page-subtitle {
                 font-size: 0.65rem !important;
+                line-height: 1.1 !important;
+            }
+            
+            /* Ajustar o container do título para não ocupar muito espaço */
+            .top-navbar > .d-flex:first-child {
+                flex: 0 1 auto !important;
+                max-width: 50% !important;
+                overflow: hidden !important;
             }
             /* Hide desktop table, show mobile cards */
             .desktop-table {
@@ -2164,19 +2237,84 @@
                 font-size: 0.8rem;
             }
             
-            /* Navbar month filter */
+            /* Navbar month filter - Compacto com ellipsis - MAX 110PX */
             .navbar-actions form input[type="month"],
             .month-selector {
-                min-width: 140px;
-                width: auto;
-                font-size: 0.85rem;
-                padding: 0.4rem 2rem 0.4rem 0.6rem !important;
+                min-width: 90px !important;
+                max-width: 110px !important;
+                width: 100px !important;
+                font-size: 12px !important;
+                padding: 0.3rem 0.2rem 0.3rem 0.4rem !important;
                 pointer-events: auto !important;
+                text-overflow: ellipsis !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                flex-shrink: 0 !important;
             }
             
             .navbar-actions form .btn {
-                padding: 0.25rem 0.5rem;
+                padding: 0.25rem 0.4rem !important;
                 pointer-events: auto !important;
+                flex-shrink: 0 !important;
+                min-width: 32px !important;
+                width: 32px !important;
+                height: 32px !important;
+            }
+            
+            /* Garantir que navbar_extra não quebre para nova linha */
+            .top-navbar .navbar-actions {
+                flex-wrap: nowrap !important;
+                overflow: visible !important;
+            }
+            
+            /* Ajustar espaçamento - GAP MÁXIMO 5PX */
+            .navbar-actions {
+                gap: 5px !important;
+            }
+            
+            /* Form container também com gap reduzido */
+            .navbar-actions form {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                align-items: center !important;
+                gap: 5px !important;
+                flex-shrink: 0 !important;
+            }
+            
+            /* Botão de filtro - GARANTIR COR AZUL E VISIBILIDADE */
+            .navbar-actions form .btn-primary,
+            .navbar-actions form .btn[type="submit"] {
+                background-color: #0d6efd !important;
+                border-color: #0d6efd !important;
+                color: white !important;
+                flex-shrink: 0 !important;
+                min-width: 34px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            
+            .navbar-actions form .btn-primary:hover,
+            .navbar-actions form .btn[type="submit"]:hover {
+                background-color: #0b5ed7 !important;
+                border-color: #0a58ca !important;
+            }
+            
+            /* Prevenir textos (como "Até hoje") de sobrepor ícones */
+            .navbar-actions > *:not(form):not(button):not(.dropdown-actions-wrapper),
+            .navbar-actions span,
+            .navbar-actions label,
+            .navbar-actions small {
+                font-size: 10px !important;
+                margin-left: 4px !important;
+                white-space: nowrap !important;
+                display: none !important; /* Esconder textos extras no mobile */
+            }
+            
+            /* Se houver badge ou indicador, manter compacto */
+            .navbar-actions .badge {
+                font-size: 9px !important;
+                padding: 2px 4px !important;
             }
             
             /* Hide chart on very small screens */
@@ -2308,31 +2446,38 @@
             
             .navbar-actions form input[type="month"],
             .month-selector {
-                min-width: 110px !important;
-                max-width: 150px !important;
-                width: auto;
-                font-size: 0.75rem !important;
-                padding: 0.35rem 1.5rem 0.35rem 0.5rem !important;
-                height: 34px !important;
+                min-width: 95px !important;
+                max-width: 95px !important;
+                width: 95px !important;
+                font-size: 0.7rem !important;
+                padding: 0.3rem 1.2rem 0.3rem 0.4rem !important;
+                height: 32px !important;
             }
             
             .navbar-actions form .btn {
-                padding: 0.3rem 0.5rem;
-                font-size: 0.85rem;
-                height: 32px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                padding: 0.25rem 0.4rem !important;
+                font-size: 0.8rem !important;
+                height: 32px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
             }
             
             /* Icons - smaller and grouped on right side */
             .btn-theme-toggle,
-            .btn-privacy-toggle {
-                width: 32px;
-                height: 32px;
-                font-size: 0.85rem;
-                flex-shrink: 0;
-                z-index: 1;
+            .btn-privacy-toggle,
+            .btn-actions-toggle {
+                width: 32px !important;
+                height: 32px !important;
+                font-size: 0.8rem !important;
+                flex-shrink: 0 !important;
+                z-index: 1 !important;
+                padding: 0.4rem !important;
+            }
+            
+            /* Reduzir gap para caber todos */
+            .navbar-actions {
+                gap: 4px !important;
             }
             
             /* Remover rolagem horizontal no dashboard mobile */
@@ -2399,18 +2544,63 @@
            EXTRA SMALL DEVICES (< 380px)
            ======================================== */
         @media (max-width: 379.98px) {
-            /* Seletor de m\u00eas ainda menor para telas muito pequenas */
+            /* Seletor de mês ainda menor com ellipsis */
             .navbar-actions form input[type="month"],
             .month-selector {
-                min-width: 115px;
-                font-size: 0.75rem;
-                padding: 0.3rem 1.5rem 0.3rem 0.4rem !important;
-                height: 34px;
+                min-width: 85px !important;
+                max-width: 100px !important;
+                width: 90px !important;
+                font-size: 0.7rem !important;
+                padding: 0.25rem 0.2rem 0.25rem 0.35rem !important;
+                height: 32px !important;
+                text-overflow: ellipsis !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
             }
             
             .navbar-actions form .btn {
-                padding: 0.25rem 0.45rem;
-                height: 34px;
+                padding: 0.2rem 0.35rem !important;
+                height: 32px !important;
+                min-width: 32px !important;
+            }
+            
+            /* Reduzir tamanho dos outros botões também */
+            .btn-privacy-toggle,
+            .btn-theme-toggle,
+            .btn-actions-toggle,
+            .mobile-menu-toggle {
+                width: 32px !important;
+                height: 32px !important;
+                padding: 0.4rem !important;
+                flex-shrink: 0 !important;
+            }
+            
+            /* GAP super reduzido para iPhone pequenos */
+            .navbar-actions {
+                gap: 6px !important;
+            }
+            
+            .navbar-actions form {
+                gap: 5px !important;
+            }
+            
+            /* Garantir overflow-x hidden */
+            .top-navbar {
+                overflow-x: hidden !important;
+            }
+            
+            /* Cards de resumo - Padding reduzido para mobile pequeno */
+            .stat-card .card-body {
+                padding: 0.75rem !important;
+                min-height: 100px !important;
+            }
+            
+            .stat-value {
+                font-size: clamp(1.3rem, 6vw, 2rem) !important;
+            }
+            
+            .stat-label {
+                font-size: 0.7rem !important;
             }
         }
         

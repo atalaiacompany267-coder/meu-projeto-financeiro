@@ -318,7 +318,7 @@
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: nowrap !important;
-        gap: 10px !important;
+        gap: 12px !important;
         justify-content: space-between !important;
         align-items: center !important;
     }
@@ -327,11 +327,12 @@
     .meta-action-buttons .btn {
         flex: 1 !important;
         padding: 0.5rem 0.75rem !important;
-        font-size: 0.8rem !important;
+        font-size: 0.85rem !important;
         white-space: nowrap !important;
+        font-weight: 500 !important;
     }
     
-    /* Cores específicas dos botões */
+    /* Cores específicas dos botões - Verde, Branco, Vermelho */
     .meta-action-buttons .btn-success {
         background-color: #28a745 !important;
         border-color: #28a745 !important;
@@ -341,17 +342,26 @@
     .meta-action-buttons .btn-success:hover {
         background-color: #218838 !important;
         border-color: #1e7e34 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
     }
     
     .meta-action-buttons .btn-outline-secondary {
         background-color: white !important;
-        border-color: #6c757d !important;
-        color: #6c757d !important;
+        border-color: #ced4da !important;
+        color: #000000 !important;
+    }
+    
+    .meta-action-buttons .btn-outline-secondary i {
+        color: #000000 !important;
     }
     
     .meta-action-buttons .btn-outline-secondary:hover {
-        background-color: #6c757d !important;
-        color: white !important;
+        background-color: #f8f9fa !important;
+        border-color: #adb5bd !important;
+        color: #000000 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(108, 117, 125, 0.2);
     }
     
     .meta-action-buttons .btn-danger {
@@ -363,6 +373,13 @@
     .meta-action-buttons .btn-danger:hover {
         background-color: #c82333 !important;
         border-color: #bd2130 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+    }
+    
+    /* Transições suaves */
+    .meta-action-buttons .btn {
+        transition: all 0.2s ease !important;
     }
     
     /* Responsivo - tablets */
@@ -496,16 +513,9 @@
                     </label>
                     <select name="lancamento_fixo_id" class="form-select" id="selectFixoGuardar">
                         <option value="">-- Nenhum (atualização manual) --</option>
-                        <optgroup label="📌 Lançamentos Fixos">
-                            {% for fixo in fixos_dropdown %}
-                            <option value="{{ fixo[0] }}">{{ fixo[1] }} - R$ {{ "%.2f"|format(fixo[2]) }}</option>
-                            {% endfor %}
-                        </optgroup>
-                        <optgroup label="📝 Lançamentos Recentes">
-                            {% for lanc in lancamentos_dropdown %}
-                            <option value="lanc_{{ lanc[0] }}">{{ lanc[1] }} - R$ {{ "%.2f"|format(lanc[2]) }}</option>
-                            {% endfor %}
-                        </optgroup>
+                        {% for fixo in fixos_dropdown %}
+                        <option value="{{ fixo[0] }}">{{ fixo[1] }}</option>
+                        {% endfor %}
                     </select>
                     <small class="text-muted">Se vinculado, a meta será atualizada automaticamente ao confirmar o lançamento</small>
                 </div>
@@ -545,16 +555,9 @@
                     </label>
                     <select name="lancamento_fixo_id_quitar" class="form-select" id="selectFixoQuitar">
                         <option value="">-- Nenhum (atualização manual) --</option>
-                        <optgroup label="📌 Lançamentos Fixos">
-                            {% for fixo in fixos_dropdown %}
-                            <option value="{{ fixo[0] }}">{{ fixo[1] }} - R$ {{ "%.2f"|format(fixo[2]) }}</option>
-                            {% endfor %}
-                        </optgroup>
-                        <optgroup label="📝 Lançamentos Recentes">
-                            {% for lanc in lancamentos_dropdown %}
-                            <option value="lanc_{{ lanc[0] }}">{{ lanc[1] }} - R$ {{ "%.2f"|format(lanc[2]) }}</option>
-                            {% endfor %}
-                        </optgroup>
+                        {% for fixo in fixos_dropdown %}
+                        <option value="{{ fixo[0] }}">{{ fixo[1] }}</option>
+                        {% endfor %}
                     </select>
                     <small class="text-muted">Se vinculado, a parcela será registrada automaticamente ao confirmar o lançamento</small>
                 </div>
@@ -592,36 +595,6 @@
                             </span>
                             {% endif %}
                         </div>
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li>
-                                <a class="dropdown-item text-{{ 'danger' if is_divida else 'success' }}" href="#" 
-                                   onclick="openAddValueModal('{{ id }}', '{{ m.descricao }}', '{{ tipo }}', '{{ m.valor_parcela }}')">
-                                    {% if is_divida %}
-                                    <i class="fas fa-money-bill-wave me-2"></i>Registrar Pagamento
-                                    {% else %}
-                                    <i class="fas fa-plus-circle me-2"></i>Adicionar Valor
-                                    {% endif %}
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item text-primary" href="#" 
-                                   onclick="openEditModal('{{ id }}', '{{ m.descricao }}', '{{ tipo }}', '{{ m.valor_alvo }}', '{{ m.valor_atual }}', '{{ m.valor_parcela }}', '{{ m.total_meses }}', '{{ m.valor_aporte_mensal }}', '{{ m.lancamento_fixo_id or '' }}')">
-                                    <i class="fas fa-pencil-alt me-2"></i>Editar
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item text-danger" href="{{ url_for('delete_meta', id=id) }}" 
-                                   onclick="return confirm('Tem certeza que deseja excluir?')">
-                                    <i class="fas fa-trash me-2"></i>Excluir
-                                </a>
-                            </li>
-                        </ul>
                     </div>
                 </div>
                 
@@ -911,7 +884,7 @@
                     <select name="lancamento_fixo_id" id="edit-lancamento-fixo" class="form-select">
                         <option value="">-- Nenhum (atualização manual) --</option>
                         {% for fixo in fixos_dropdown %}
-                        <option value="{{ fixo[0] }}">{{ fixo[1] }} - R$ {{ "%.2f"|format(fixo[2]) }}</option>
+                        <option value="{{ fixo[0] }}">{{ fixo[1] }}</option>
                         {% endfor %}
                     </select>
                 </div>
