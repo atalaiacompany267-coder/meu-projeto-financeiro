@@ -674,7 +674,7 @@
                     <div class="d-flex justify-content-between align-items-start flex-column flex-sm-row">
                         <div class="flex-grow-1" style="min-width: 0;">
                             <p class="stat-label mb-1">Entradas</p>
-                            <h3 class="stat-value privacy-mask mb-0" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">R$ {{ "%.2f"|format(entrada) }}</h3>
+                            <h3 class="stat-value privacy-mask mb-0 text-success" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">R$ {{ "%.2f"|format(entrada) }}</h3>
                             <small class="text-{{ 'success' if trend_ent_pct > 0 else 'danger' }} d-none d-md-inline">
                                 <i class="fas fa-arrow-{{ 'up' if trend_ent_pct > 0 else 'down' }}"></i>
                                 {{ "%.0f"|format(trend_ent_pct|abs) }}%
@@ -693,7 +693,7 @@
                     <div class="d-flex justify-content-between align-items-start flex-column flex-sm-row">
                         <div class="flex-grow-1" style="min-width: 0;">
                             <p class="stat-label mb-1">Saídas</p>
-                            <h3 class="stat-value privacy-mask mb-0" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">R$ {{ "%.2f"|format(saida|abs) }}</h3>
+                            <h3 class="stat-value privacy-mask mb-0 text-danger" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">R$ {{ "%.2f"|format(saida|abs) }}</h3>
                             <small class="text-{{ 'danger' if trend_sai_pct > 0 else 'success' }} d-none d-md-inline">
                                 <i class="fas fa-arrow-{{ 'up' if trend_sai_pct > 0 else 'down' }}"></i>
                                 {{ "%.0f"|format(trend_sai_pct|abs) }}%
@@ -712,7 +712,7 @@
                     <div class="d-flex justify-content-between align-items-start flex-column flex-sm-row">
                         <div class="flex-grow-1" style="min-width: 0;">
                             <p class="stat-label mb-1">Saldo</p>
-                            <h3 class="stat-value privacy-mask mb-0 text-{{ 'success' if saldo >= 0 else 'danger' }}" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
+                            <h3 class="stat-value privacy-mask mb-0 text-primary" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
                                 R$ {{ "%.2f"|format(saldo) }}
                             </h3>
                         </div>

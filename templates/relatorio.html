@@ -15,15 +15,50 @@
 {% endblock %}
 
 {% block content %}
+<style>
+    /* Cards de Resumo - Mobile em linha horizontal */
+    @media (max-width: 575px) {
+        .relatorio-stats-row {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            gap: 0.5rem !important;
+        }
+        
+        .relatorio-stats-row > .col-4 {
+            flex: 1 1 0 !important;
+            min-width: 0 !important;
+            max-width: none !important;
+            padding: 0 !important;
+        }
+        
+        .relatorio-stats-row .stat-card .card-body {
+            padding: 0.75rem !important;
+        }
+        
+        .relatorio-stats-row .stat-label {
+            font-size: 0.65rem !important;
+        }
+        
+        .relatorio-stats-row .stat-value {
+            font-size: 0.85rem !important;
+            white-space: nowrap !important;
+        }
+        
+        .relatorio-stats-row .stat-icon {
+            display: none !important;
+        }
+    }
+</style>
+
 <!-- Summary Cards - Layout lado a lado igual ao Dashboard -->
-<div class="row g-3 mb-4">
-    <div class="col-12 col-sm-4">
+<div class="row g-2 g-md-3 mb-4 relatorio-stats-row">
+    <div class="col-4 col-sm-4">
         <div class="card stat-card entrada">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start flex-column flex-sm-row">
                     <div class="flex-grow-1" style="min-width: 0;">
                         <p class="stat-label mb-1">Total Entradas</p>
-                        <h3 class="stat-value privacy-mask mb-0" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
+                        <h3 class="stat-value privacy-mask mb-0 text-success" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
                             R$ {{ "%.2f"|format(total_entrada) }}
                         </h3>
                     </div>
@@ -34,13 +69,13 @@
             </div>
         </div>
     </div>
-    <div class="col-12 col-sm-4">
+    <div class="col-4 col-sm-4">
         <div class="card stat-card saida">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start flex-column flex-sm-row">
                     <div class="flex-grow-1" style="min-width: 0;">
                         <p class="stat-label mb-1">Total Saídas</p>
-                        <h3 class="stat-value privacy-mask mb-0" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
+                        <h3 class="stat-value privacy-mask mb-0 text-danger" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
                             R$ {{ "%.2f"|format(total_saida) }}
                         </h3>
                     </div>
@@ -51,13 +86,13 @@
             </div>
         </div>
     </div>
-    <div class="col-12 col-sm-4">
+    <div class="col-4 col-sm-4">
         <div class="card stat-card saldo">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start flex-column flex-sm-row">
                     <div class="flex-grow-1" style="min-width: 0;">
                         <p class="stat-label mb-1">Saldo Anual</p>
-                        <h3 class="stat-value privacy-mask mb-0 text-{{ 'success' if total_saldo >= 0 else 'danger' }}" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
+                        <h3 class="stat-value privacy-mask mb-0 text-primary" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
                             R$ {{ "%.2f"|format(total_saldo) }}
                         </h3>
                     </div>
