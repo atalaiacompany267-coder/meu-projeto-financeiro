@@ -715,7 +715,6 @@
                             <h3 class="stat-value privacy-mask mb-0 text-{{ 'success' if saldo >= 0 else 'danger' }}" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
                                 R$ {{ "%.2f"|format(saldo) }}
                             </h3>
-                            <small class="text-muted d-none d-md-inline">Média: R$ {{ "%.0f"|format(avg_ent - avg_sai) }}</small>
                         </div>
                         <div class="stat-icon d-none d-sm-flex">
                             <i class="fas fa-wallet"></i>
@@ -881,9 +880,8 @@
                         <th style="width: 50px;" class="text-center">
                             <i class="fas fa-check-circle"></i>
                         </th>
+                        <th>Lançamento</th>
                         <th>Data</th>
-                        <th>Tipo</th>
-                        <th>Categoria</th>
                         <th class="text-end col-valor">Valor</th>
                         <th class="text-center col-acoes">Ações</th>
                     </tr>
@@ -899,15 +897,13 @@
                                 <i class="fas fa-check"></i>
                             </a>
                         </td>
-                        <td class="col-data">{{ l.Data }}</td>
-                        <td>
-                            <span class="badge badge-{{ 'entrada' if l.Tipo == 'ENTRADA' else 'saida' }}">
-                                {{ l.Tipo }}
-                            </span>
-                        </td>
                         <td class="col-categoria">
                             <span class="categoria-texto">{{ l.Categoria }}</span>
+                            {% if l.Fixado == 'Sim' %}
+                            <i class="fas fa-thumbtack text-warning ms-1" style="font-size: 0.7rem;"></i>
+                            {% endif %}
                         </td>
+                        <td class="col-data">{{ l.Data }}</td>
                         <td class="text-end col-valor privacy-mask fw-bold text-{{ 'success' if l.Valor > 0 else 'danger' }}">
                             <span class="valor-texto">R$&nbsp;{{ "%.2f"|format(l.Valor|abs) }}</span>
                         </td>
@@ -932,7 +928,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">
+                        <td colspan="5" class="text-center text-muted py-4">
                             <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
                             Nenhum lançamento neste mês
                         </td>
@@ -961,9 +957,10 @@
                 </div>
                 <div class="transaction-meta">
                     <span><i class="fas fa-calendar"></i> {{ l.Data }}</span>
-                    <span><i class="fas fa-tag"></i> {{ l.Categoria }}</span>
                     {% if l.Status == 'Pago' %}
                     <span class="text-success"><i class="fas fa-check-circle"></i> Pago</span>
+                    {% else %}
+                    <span class="text-warning"><i class="fas fa-clock"></i> Pendente</span>
                     {% endif %}
                 </div>
                 <div class="transaction-actions">
