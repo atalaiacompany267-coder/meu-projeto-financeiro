@@ -1155,21 +1155,32 @@ def add_meta():
             valor_parcela_str = request.form.get('valor_parcela', '0')
             total_meses_str = request.form.get('total_meses', '0')
             meses_pagos_str = request.form.get('meses_pagos', '0')
+            valor_ja_pago_str = request.form.get('valor_ja_pago', '0')
             
             # Converte com tratamento de string vazia
             valor_parcela = float(valor_parcela_str) if valor_parcela_str.strip() else 0.0
             total_meses = int(total_meses_str) if total_meses_str.strip() else 0
             meses_pagos = int(meses_pagos_str) if meses_pagos_str.strip() else 0
+            valor_ja_pago = float(valor_ja_pago_str) if valor_ja_pago_str.strip() else 0.0
             
             # Calcula valor_alvo automaticamente (parcela * total de meses)
             valor_alvo = valor_parcela * total_meses
+            
+            # Se usuário informou valor_ja_pago, usa ele; senão calcula por meses_pagos
+            if valor_ja_pago > 0:
+                valor_atual = valor_ja_pago
+                # Atualiza meses_pagos proporcionalmente se parcela > 0
+                if valor_parcela > 0:
+                    meses_pagos = int(valor_ja_pago / valor_parcela)
+            else:
+                valor_atual = valor_parcela * meses_pagos
             
             new_goal = Goal(
                 user_id=current_user.id,
                 descricao=request.form['descricao'],
                 tipo_meta='quitar',
                 valor_alvo=valor_alvo,
-                valor_atual=valor_parcela * meses_pagos,
+                valor_atual=valor_atual,
                 valor_parcela=valor_parcela,
                 total_meses=total_meses,
                 meses_pagos=meses_pagos,
