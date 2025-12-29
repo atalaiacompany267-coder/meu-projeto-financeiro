@@ -828,15 +828,29 @@ def add_lancamento():
     A atualização da meta acontece quando o lançamento é CONFIRMADO (toggle_status),
     não na criação. O lançamento começa como 'Pendente'."""
     try:
+        # Log para debug
+        print(f"[DEBUG] Recebendo dados do form: {dict(request.form)}")
+        
         d = datetime.strptime(request.form['data'], '%d/%m/%Y')
         v = float(request.form['valor']) * (-1 if request.form['tipo'] == 'SAIDA' else 1)
         
-        # Verifica vínculo com meta (tratamento seguro de nulos)
-        meta_id = request.form.get('meta_id', '')
-        meta_id = int(meta_id) if meta_id and meta_id.strip() and meta_id.strip() != '' else None
+        # Verifica vínculo com meta (tratamento ULTRA seguro de nulos)
+        meta_id_raw = request.form.get('meta_id', '')
+        meta_id = None
+        print(f"[DEBUG] meta_id_raw = '{meta_id_raw}' (type: {type(meta_id_raw)})")
+        
+        if meta_id_raw:
+            meta_id_clean = str(meta_id_raw).strip()
+            if meta_id_clean and meta_id_clean != '' and meta_id_clean.isdigit():
+                meta_id = int(meta_id_clean)
+                print(f"[DEBUG] meta_id convertido para: {meta_id}")
+            else:
+                print(f"[DEBUG] meta_id_clean não é dígito ou está vazio: '{meta_id_clean}'")
         
         # Descrição é opcional (usa categoria se vazio)
         descricao = request.form.get('descricao', '') or ''
+        
+        print(f"[DEBUG] Criando transação: data={d.date()}, valor={v}, meta_id={meta_id}")
         
         new_trans = Transaction(
             user_id=current_user.id,
@@ -853,6 +867,7 @@ def add_lancamento():
         )
         db.session.add(new_trans)
         db.session.commit()
+        print(f"[DEBUG] Transação criada com sucesso! ID: {new_trans.id}")
         
         # Informa sobre o vínculo (a atualização da meta acontece no toggle_status)
         if meta_id:
@@ -864,6 +879,9 @@ def add_lancamento():
         return redirect(url_for('dashboard', filtro_mes=d.strftime('%Y-%m')))
     except Exception as e:
         db.session.rollback()
+        print(f"[ERRO] Falha ao adicionar lançamento: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
         flash(f'Erro ao adicionar: {e}', 'danger')
         return redirect(url_for('dashboard'))
 

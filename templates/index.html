@@ -894,12 +894,6 @@
                         </td>
                         <td class="col-categoria">
                             <span class="categoria-texto">{{ l.Categoria }}</span>
-                            {% if l.MetaID %}
-                            <span class="badge bg-{{ 'danger' if l.MetaTipo == 'quitar' else 'success' }} ms-1 badge-meta" 
-                                  title="Vinculado a: {{ l.MetaNome }}">
-                                <i class="fas fa-{{ 'file-invoice-dollar' if l.MetaTipo == 'quitar' else 'piggy-bank' }} me-1"></i>{{ l.MetaNome|truncate(15) }}
-                            </span>
-                            {% endif %}
                         </td>
                         <td class="text-end col-valor privacy-mask fw-bold text-{{ 'success' if l.Valor > 0 else 'danger' }}">
                             <span class="valor-texto">R$&nbsp;{{ "%.2f"|format(l.Valor|abs) }}</span>
@@ -953,14 +947,6 @@
                         {{ '+' if l.Valor > 0 else '-' }}R$ {{ "%.2f"|format(l.Valor|abs) }}
                     </div>
                 </div>
-                {% if l.MetaID %}
-                <div class="mb-1">
-                    <span class="badge bg-{{ 'danger' if l.MetaTipo == 'quitar' else 'success' }}" 
-                          style="font-size: 0.6rem;">
-                        <i class="fas fa-{{ 'file-invoice-dollar' if l.MetaTipo == 'quitar' else 'piggy-bank' }} me-1"></i>{{ l.MetaNome }}
-                    </span>
-                </div>
-                {% endif %}
                 <div class="transaction-meta">
                     <span><i class="fas fa-calendar"></i> {{ l.Data }}</span>
                     <span><i class="fas fa-tag"></i> {{ l.Categoria }}</span>

@@ -87,6 +87,12 @@
             margin: 0 !important;
             padding: 0 !important;
             position: relative;
+            background: var(--bg-primary) !important;
+        }
+        
+        /* Garantir que não haja espaço no topo em nenhuma situação */
+        body::before {
+            display: none !important;
         }
         
         .main-content {
@@ -343,13 +349,13 @@
                 font-size: 0.9rem !important;
             }
             
-            /* ÍCONES COLADOS - GAP 4px, ALINHADOS À DIREITA */
+            /* ÍCONES COLADOS - GAP 2px, ALINHADOS À DIREITA */
             .navbar-actions {
                 display: flex !important;
                 flex-direction: row !important;
                 flex-wrap: nowrap !important;
                 align-items: center !important;
-                gap: 4px !important;
+                gap: 2px !important;
                 margin-left: auto !important;
                 margin-right: 8px !important;
                 flex-shrink: 0 !important;
@@ -2914,7 +2920,7 @@
                     <p class="page-subtitle">{% block page_subtitle %}{% endblock %}</p>
                 </div>
             </div>
-            <div class="navbar-actions" style="display: flex !important; align-items: center !important; gap: 4px !important; flex-wrap: nowrap !important; margin-left: auto !important; margin-right: 8px !important; justify-content: flex-end !important;">
+            <div class="navbar-actions" style="display: flex !important; align-items: center !important; gap: 2px !important; flex-wrap: nowrap !important; margin-left: auto !important; margin-right: 8px !important; justify-content: flex-end !important;">
                 <!-- 1️⃣ ÍCONE OLHO (Privacidade) -->
                 <button class="btn-privacy-toggle" id="btn-privacy" title="Modo Privacidade">
                     <i class="fas fa-eye"></i>
