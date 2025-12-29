@@ -6,7 +6,172 @@
 {% block page_subtitle %}Gerencie suas receitas e despesas recorrentes{% endblock %}
 
 {% block content %}
-<!-- New Fixed Expense Form -->
+<style>
+    /* ========================================
+       BOTÕES DE AÇÃO - LANÇAMENTOS FIXOS
+       Layout horizontal igual ao Dashboard
+       ======================================== */
+    
+    /* Container de ações - SEMPRE em linha */
+    .fixos-action-buttons {
+        display: inline-flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 6px !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+    
+    /* Botões de ação uniformes */
+    .fixos-action-buttons .btn {
+        padding: 0.35rem 0.5rem !important;
+        font-size: 0.85rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 36px !important;
+        height: 32px !important;
+    }
+    
+    /* Coluna de ações na tabela */
+    .col-fixos-acoes {
+        min-width: 100px !important;
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+    }
+    
+    /* Mobile: Botões lado a lado com gap */
+    .mobile-transaction-card .transaction-actions {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 8px !important;
+        justify-content: center !important;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .mobile-transaction-card .transaction-actions .btn {
+        flex: 1 !important;
+        max-width: 120px !important;
+    }
+    
+    /* Responsivo - Tablets */
+    @media (max-width: 992px) {
+        .fixos-action-buttons .btn {
+            padding: 0.3rem 0.4rem !important;
+            font-size: 0.8rem !important;
+            min-width: 32px !important;
+        }
+    }
+    
+    /* ========================================
+       CARDS DE RESUMO - MOBILE EM LINHA
+       Igual ao Dashboard
+       ======================================== */
+    @media (max-width: 767px) {
+        /* Cards de resumo em linha horizontal */
+        .fixos-stats-row {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            gap: 0.5rem !important;
+            overflow-x: auto !important;
+            padding-bottom: 0.5rem !important;
+        }
+        
+        .fixos-stats-row > .col-4 {
+            flex: 1 1 0 !important;
+            min-width: 0 !important;
+            max-width: none !important;
+            padding: 0 !important;
+        }
+        
+        .fixos-stats-row .stat-card .card-body {
+            padding: 0.75rem !important;
+        }
+        
+        .fixos-stats-row .stat-label {
+            font-size: 0.65rem !important;
+        }
+        
+        .fixos-stats-row .stat-value {
+            font-size: 0.85rem !important;
+            white-space: nowrap !important;
+        }
+        
+        .fixos-stats-row .stat-icon {
+            display: none !important;
+        }
+    }
+</style>
+
+<!-- ========================================
+     1. CARDS DE RESUMO (TOPO)
+     ======================================== -->
+{% set total_entradas = namespace(value=0) %}
+{% set total_saidas = namespace(value=0) %}
+{% for id, e in fixed_entries %}
+    {% if e.tipo == 'ENTRADA' %}
+        {% set total_entradas.value = total_entradas.value + e.valor %}
+    {% else %}
+        {% set total_saidas.value = total_saidas.value + e.valor %}
+    {% endif %}
+{% endfor %}
+
+<div class="row g-2 g-md-4 mb-4 fixos-stats-row">
+    <div class="col-4 col-md-4">
+        <div class="card stat-card entrada">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="stat-label mb-1">Entradas Fixas</p>
+                        <h4 class="stat-value privacy-mask mb-0">R$ {{ "%.2f"|format(total_entradas.value) }}</h4>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-4 col-md-4">
+        <div class="card stat-card saida">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="stat-label mb-1">Saídas Fixas</p>
+                        <h4 class="stat-value privacy-mask mb-0">R$ {{ "%.2f"|format(total_saidas.value) }}</h4>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-4 col-md-4">
+        <div class="card stat-card saldo">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="stat-label mb-1">Saldo Previsto</p>
+                        <h4 class="stat-value privacy-mask mb-0 text-{{ 'success' if (total_entradas.value - total_saidas.value) >= 0 else 'danger' }}">
+                            R$ {{ "%.2f"|format(total_entradas.value - total_saidas.value) }}
+                        </h4>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================
+     2. FORMULÁRIO NOVO LANÇAMENTO FIXO
+     ======================================== -->
 <div class="card mb-4">
     <div class="card-header">
         <i class="fas fa-plus-circle me-2"></i>Novo Lançamento Fixo
@@ -60,68 +225,9 @@
     </div>
 </div>
 
-<!-- Summary Cards -->
-<div class="row g-4 mb-4">
-    {% set total_entradas = namespace(value=0) %}
-    {% set total_saidas = namespace(value=0) %}
-    {% for id, e in fixed_entries %}
-        {% if e.tipo == 'ENTRADA' %}
-            {% set total_entradas.value = total_entradas.value + e.valor %}
-        {% else %}
-            {% set total_saidas.value = total_saidas.value + e.valor %}
-        {% endif %}
-    {% endfor %}
-    
-    <div class="col-md-4">
-        <div class="card stat-card entrada">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="stat-label mb-1">Entradas Fixas</p>
-                        <h4 class="stat-value privacy-mask mb-0">R$ {{ "%.2f"|format(total_entradas.value) }}</h4>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-arrow-up"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card stat-card saida">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="stat-label mb-1">Saídas Fixas</p>
-                        <h4 class="stat-value privacy-mask mb-0">R$ {{ "%.2f"|format(total_saidas.value) }}</h4>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-arrow-down"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card stat-card saldo">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="stat-label mb-1">Saldo Previsto</p>
-                        <h4 class="stat-value privacy-mask mb-0 text-{{ 'success' if (total_entradas.value - total_saidas.value) >= 0 else 'danger' }}">
-                            R$ {{ "%.2f"|format(total_entradas.value - total_saidas.value) }}
-                        </h4>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-calculator"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Fixed Expenses Table -->
+<!-- ========================================
+     3. TABELA DE LANÇAMENTOS CADASTRADOS
+     ======================================== -->
 <div class="card">
     <div class="card-header">
         <i class="fas fa-redo-alt me-2"></i>Lançamentos Fixos Cadastrados
@@ -158,16 +264,18 @@
                         <td class="text-end privacy-mask fw-bold text-{{ 'success' if e.tipo == 'ENTRADA' else 'danger' }}">
                             R$ {{ "%.2f"|format(e.valor) }}
                         </td>
-                        <td class="text-center">
-                            <a href="{{ url_for('edit_fixo_form', id=id) }}" 
-                               class="btn btn-action btn-outline-primary" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a href="{{ url_for('delete_fixo', id=id) }}" 
-                               class="btn btn-action btn-outline-danger" 
-                               onclick="return confirm('Excluir este lançamento fixo?')" title="Excluir">
-                                <i class="fas fa-trash"></i>
-                            </a>
+                        <td class="text-center col-fixos-acoes">
+                            <div class="fixos-action-buttons">
+                                <a href="{{ url_for('edit_fixo_form', id=id) }}" 
+                                   class="btn btn-outline-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{{ url_for('delete_fixo', id=id) }}" 
+                                   class="btn btn-outline-danger" 
+                                   onclick="return confirm('Excluir este lançamento fixo?')" title="Excluir">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% else %}
