@@ -899,9 +899,6 @@
                         </td>
                         <td class="col-categoria">
                             <span class="categoria-texto">{{ l.Categoria }}</span>
-                            {% if l.Fixado == 'Sim' %}
-                            <i class="fas fa-thumbtack text-warning ms-1" style="font-size: 0.7rem;"></i>
-                            {% endif %}
                         </td>
                         <td class="col-data">{{ l.Data }}</td>
                         <td class="text-end col-valor privacy-mask fw-bold text-{{ 'success' if l.Valor > 0 else 'danger' }}">
@@ -947,9 +944,6 @@
                 <div class="transaction-header">
                     <div class="transaction-desc">
                         {{ l.Categoria }}
-                        {% if l.Fixado == 'Sim' %}
-                        <i class="fas fa-thumbtack text-warning ms-1" style="font-size: 0.7rem;"></i>
-                        {% endif %}
                     </div>
                     <div class="transaction-valor privacy-mask text-{{ 'success' if l.Valor > 0 else 'danger' }}">
                         {{ '+' if l.Valor > 0 else '-' }}R$ {{ "%.2f"|format(l.Valor|abs) }}

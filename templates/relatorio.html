@@ -96,7 +96,6 @@
                         <th class="text-end">Entradas</th>
                         <th class="text-end">Saídas</th>
                         <th class="text-end">Saldo</th>
-                        <th style="width: 200px;">Evolução</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -114,17 +113,6 @@
                         <td class="text-end privacy-mask fw-bold text-{{ 'success' if r.Saldo >= 0 else 'danger' }}">
                             R$ {{ "%.2f"|format(r.Saldo) }}
                         </td>
-                        <td>
-                            {% set max_val = total_entrada if total_entrada > total_saida else total_saida %}
-                            {% set entrada_pct = (r.Entrada / max_val * 100) if max_val > 0 else 0 %}
-                            {% set saida_pct = (r.Saida / max_val * 100) if max_val > 0 else 0 %}
-                            <div class="progress" style="height: 20px;">
-                                <div class="progress-bar bg-success" style="width: {{ entrada_pct }}%" 
-                                     title="Entrada: R$ {{ '%.2f'|format(r.Entrada) }}"></div>
-                                <div class="progress-bar bg-danger" style="width: {{ saida_pct }}%" 
-                                     title="Saída: R$ {{ '%.2f'|format(r.Saida) }}"></div>
-                            </div>
-                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -134,7 +122,6 @@
                         <th class="text-end privacy-mask">R$ {{ "%.2f"|format(total_entrada) }}</th>
                         <th class="text-end privacy-mask">R$ {{ "%.2f"|format(total_saida) }}</th>
                         <th class="text-end privacy-mask">R$ {{ "%.2f"|format(total_saldo) }}</th>
-                        <th></th>
                     </tr>
                 </tfoot>
             </table>
@@ -155,13 +142,6 @@
                 <div class="transaction-meta">
                     <span class="text-success"><i class="fas fa-arrow-up"></i> R$ {{ "%.0f"|format(r.Entrada) }}</span>
                     <span class="text-danger"><i class="fas fa-arrow-down"></i> R$ {{ "%.0f"|format(r.Saida) }}</span>
-                </div>
-                <div class="progress mt-2" style="height: 8px;">
-                    {% set max_val = total_entrada if total_entrada > total_saida else total_saida %}
-                    {% set entrada_pct = (r.Entrada / max_val * 100) if max_val > 0 else 0 %}
-                    {% set saida_pct = (r.Saida / max_val * 100) if max_val > 0 else 0 %}
-                    <div class="progress-bar bg-success" style="width: {{ entrada_pct }}%"></div>
-                    <div class="progress-bar bg-danger" style="width: {{ saida_pct }}%"></div>
                 </div>
             </div>
             {% endfor %}
@@ -218,9 +198,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         borderRadius: 4,
                         order: 2
                     },
-                    // Linhas de Evolução (frente)
+                    // Linhas de Evolução (frente) - ocultas da legenda e tooltip
                     {
-                        label: '📈 Evolução Entradas',
+                        label: '_hidden_linha_entradas',
                         data: {{ chart_entrada|safe }},
                         type: 'line',
                         borderColor: '#198754',
@@ -236,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         order: 1
                     },
                     {
-                        label: '📈 Evolução Saídas',
+                        label: '_hidden_linha_saidas',
                         data: {{ chart_saida|safe }},
                         type: 'line',
                         borderColor: '#dc3545',
@@ -252,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         order: 1
                     },
                     {
-                        label: '📈 Evolução Saldo',
+                        label: '_hidden_linha_saldo',
                         data: {{ chart_saldo|safe }},
                         type: 'line',
                         borderColor: '#0d6efd',
@@ -284,22 +264,43 @@ document.addEventListener('DOMContentLoaded', function() {
                             padding: 15,
                             font: {
                                 size: 11
+                            },
+                            // Filtra itens ocultos da legenda
+                            filter: function(item) {
+                                return !item.text.startsWith('_hidden_');
                             }
                         },
                         onClick: function(e, legendItem, legend) {
-                            // Comportamento padrão de toggle
                             const index = legendItem.datasetIndex;
                             const ci = legend.chart;
-                            const meta = ci.getDatasetMeta(index);
-                            meta.hidden = meta.hidden === null ? !ci.data.datasets[index].hidden : null;
+                            
+                            // Toggle da barra
+                            const metaBar = ci.getDatasetMeta(index);
+                            metaBar.hidden = metaBar.hidden === null ? !ci.data.datasets[index].hidden : null;
+                            
+                            // Toggle da linha correspondente (índice + 3)
+                            const lineIndex = index + 3;
+                            if (lineIndex < ci.data.datasets.length) {
+                                const metaLine = ci.getDatasetMeta(lineIndex);
+                                metaLine.hidden = metaBar.hidden;
+                            }
+                            
                             ci.update();
                         }
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
+                                // Não mostra tooltip para linhas ocultas
+                                if (context.dataset.label.startsWith('_hidden_')) {
+                                    return null;
+                                }
                                 return context.dataset.label + ': R$ ' + context.raw.toFixed(2);
                             }
+                        },
+                        filter: function(tooltipItem) {
+                            // Filtra tooltips das linhas ocultas
+                            return !tooltipItem.dataset.label.startsWith('_hidden_');
                         }
                     }
                 },
