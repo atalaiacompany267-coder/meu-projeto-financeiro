@@ -36,6 +36,8 @@
         gap: 6px !important;
         font-size: 11px !important;
         width: 100% !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
     }
     
     /* Bolinha colorida da legenda */
@@ -54,6 +56,14 @@
         color: #2d3748 !important;
     }
     
+    /* Texto da categoria - truncar com ellipsis */
+    #categoryLegend div span:last-child {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: calc(100% - 20px) !important;
+    }
+    
     /* Modo escuro: texto BRANCO FORÇADO */
     [data-theme="dark"] #categoryLegend div,
     [data-theme="dark"] #categoryLegend div span:last-child {
@@ -63,11 +73,11 @@
     /* Mobile: ajustes de tamanho */
     @media (max-width: 767px) {
         #categoryLegend {
-            gap: 6px 10px !important;
+            gap: 5px 8px !important;
         }
         
         #categoryLegend div {
-            font-size: 10px !important;
+            font-size: 9px !important;
         }
         
         #categoryLegend div span:first-child {
@@ -75,6 +85,10 @@
             height: 8px !important;
             min-width: 8px !important;
             min-height: 8px !important;
+        }
+        
+        #categoryLegend div span:last-child {
+            max-width: calc(100% - 16px) !important;
         }
     }
     
@@ -878,8 +892,7 @@
                     {% for l in dados_exibicao %}
                     <tr class="{% if l.Status == 'Pago' %}row-pago{% endif %}" 
                         data-tipo="{{ l.Tipo }}" 
-                        data-categoria="{{ l.Categoria|lower }}" 
-                        data-descricao="{{ l.Descrição|lower }}">
+                        data-categoria="{{ l.Categoria|lower }}">
                         <td class="text-center">
                             <a href="{{ url_for('toggle_status', id=l.ID, filtro_mes=filtro_atual) }}" 
                                class="btn-status {% if l.Status == 'Pago' %}pago{% endif %}">
@@ -934,11 +947,10 @@
             {% for l in dados_exibicao %}
             <div class="mobile-transaction-card {{ 'entrada' if l.Tipo == 'ENTRADA' else 'saida' }} {% if l.Status == 'Pago' %}opacity-75{% endif %}"
                  data-tipo="{{ l.Tipo }}" 
-                 data-categoria="{{ l.Categoria|lower }}" 
-                 data-descricao="{{ l.Descrição|lower }}">
+                 data-categoria="{{ l.Categoria|lower }}">
                 <div class="transaction-header">
                     <div class="transaction-desc">
-                        {{ l.Descrição or l.Categoria }}
+                        {{ l.Categoria }}
                         {% if l.Fixado == 'Sim' %}
                         <i class="fas fa-thumbtack text-warning ms-1" style="font-size: 0.7rem;"></i>
                         {% endif %}
@@ -1090,27 +1102,47 @@ document.addEventListener('DOMContentLoaded', function() {
         // CRIAR LEGENDA HTML CUSTOMIZADA com Grid 2 Colunas Exatas
         const legendContainer = document.getElementById('categoryLegend');
         if (legendContainer) {
+            // Função para truncar texto em N palavras (mobile)
+            function truncateWords(text, maxWords) {
+                const words = text.split(' ');
+                if (words.length <= maxWords) return text;
+                return words.slice(0, maxWords).join(' ');
+            }
+            
+            // Criar array combinado de label, valor e cor, e ordenar por valor (maior primeiro)
+            const combined = categoryLabels.map((label, i) => ({
+                label: label,
+                value: categoryData[i],
+                color: categoryColors[i]
+            }));
+            combined.sort((a, b) => b.value - a.value); // Ordenar do maior para menor
+            
             // Função para criar/atualizar a legenda com a cor correta
             function updateLegend() {
                 const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
                 const textColor = isDarkMode ? '#FFFFFF' : '#2d3748';
+                const isMobile = window.innerWidth < 768;
                 
                 let legendHTML = '';
-                categoryLabels.forEach((label, i) => {
-                    const color = categoryColors[i];
+                combined.forEach((item) => {
+                    // No mobile, limitar a 2 palavras
+                    const displayLabel = isMobile ? truncateWords(item.label, 2) : item.label;
                     legendHTML += `
-                        <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: ${textColor};">
-                            <span style="width: 10px; height: 10px; border-radius: 50%; background-color: ${color}; flex-shrink: 0;"></span>
-                            <span style="color: ${textColor}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${label}</span>
+                        <div style="display: flex; align-items: center; gap: 6px; color: ${textColor};" title="${item.label}">
+                            <span style="width: 10px; height: 10px; border-radius: 50%; background-color: ${item.color}; flex-shrink: 0;"></span>
+                            <span style="color: ${textColor}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayLabel}</span>
                         </div>
                     `;
                 });
                 legendContainer.innerHTML = legendHTML;
-                console.log('✅ Legenda customizada atualizada (cor: ' + textColor + ')');
+                console.log('✅ Legenda customizada atualizada (cor: ' + textColor + ', mobile: ' + isMobile + ')');
             }
             
             // Criar legenda inicial
             updateLegend();
+            
+            // Atualizar ao redimensionar janela
+            window.addEventListener('resize', updateLegend);
             
             // Observar mudanças no atributo data-theme
             const observer = new MutationObserver((mutations) => {
@@ -1126,7 +1158,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 attributeFilter: ['data-theme']
             });
             
-            console.log('✅ Legenda customizada criada com ' + categoryLabels.length + ' itens em grid 2 colunas');
+            console.log('✅ Legenda customizada criada com ' + categoryLabels.length + ' itens em grid 2 colunas (ordenados por valor)');
         }
         
         console.log('✅ Gráfico de categorias criado com sucesso!');
@@ -1191,10 +1223,9 @@ document.addEventListener('DOMContentLoaded', function() {
         tableRows.forEach(row => {
             const tipo = row.dataset.tipo;
             const categoria = row.dataset.categoria || '';
-            const descricao = row.dataset.descricao || '';
             
             const matchesFilter = currentFilter === 'all' || tipo === currentFilter;
-            const matchesSearch = !searchText || categoria.includes(searchText) || descricao.includes(searchText);
+            const matchesSearch = !searchText || categoria.includes(searchText);
             
             row.style.display = matchesFilter && matchesSearch ? '' : 'none';
         });
@@ -1203,10 +1234,9 @@ document.addEventListener('DOMContentLoaded', function() {
         mobileItems.forEach(card => {
             const tipo = card.dataset.tipo;
             const categoria = card.dataset.categoria || '';
-            const descricao = card.dataset.descricao || '';
             
             const matchesFilter = currentFilter === 'all' || tipo === currentFilter;
-            const matchesSearch = !searchText || categoria.includes(searchText) || descricao.includes(searchText);
+            const matchesSearch = !searchText || categoria.includes(searchText);
             
             card.style.display = matchesFilter && matchesSearch ? '' : 'none';
         });

@@ -39,10 +39,6 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">Descrição</label>
-                    <input type="text" name="descricao" class="form-control" placeholder="Descrição">
-                </div>
-                <div class="col-md-2">
                     <label class="form-label">Valor (R$)</label>
                     <input type="number" step="0.01" name="valor" class="form-control" required placeholder="0.00">
                 </div>
@@ -135,7 +131,6 @@
                         <th class="text-center" style="width: 80px;">Dia</th>
                         <th class="text-center" style="width: 100px;">Tipo</th>
                         <th>Categoria</th>
-                        <th>Descrição</th>
                         <th>Classificação</th>
                         <th class="text-end">Valor</th>
                         <th class="text-center" style="width: 100px;">Ações</th>
@@ -153,7 +148,6 @@
                             </span>
                         </td>
                         <td>{{ e.categoria }}</td>
-                        <td>{{ e.descricao or '-' }}</td>
                         <td>
                             <small class="text-muted">{{ e.classificacao }}</small>
                         </td>
@@ -190,7 +184,7 @@
             <div class="mobile-transaction-card {{ 'entrada' if e.tipo == 'ENTRADA' else 'saida' }}">
                 <div class="transaction-header">
                     <div class="transaction-desc">
-                        {{ e.descricao or e.categoria }}
+                        {{ e.categoria }}
                     </div>
                     <div class="transaction-valor privacy-mask text-{{ 'success' if e.tipo == 'ENTRADA' else 'danger' }}">
                         R$ {{ "%.2f"|format(e.valor) }}

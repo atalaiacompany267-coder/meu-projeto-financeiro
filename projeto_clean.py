@@ -1041,7 +1041,7 @@ def add_fixo():
         user_id=current_user.id,
         tipo=request.form['tipo'],
         categoria=request.form['categoria'],
-        descricao=request.form['descricao'],
+        descricao=request.form.get('descricao', '') or '',
         valor=float(request.form['valor']),
         dia_fixo=int(request.form['dia_fixo']),
         classificacao=request.form['classificacao']
@@ -1092,7 +1092,7 @@ def edit_fixo_save(id):
     if fixed:
         fixed.tipo = request.form['tipo']
         fixed.categoria = request.form['categoria']
-        fixed.descricao = request.form['descricao']
+        fixed.descricao = request.form.get('descricao', '') or ''
         fixed.valor = float(request.form['valor'])
         fixed.dia_fixo = int(request.form['dia_fixo'])
         fixed.classificacao = request.form['classificacao']
