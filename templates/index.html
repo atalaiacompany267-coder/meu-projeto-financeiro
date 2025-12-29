@@ -915,16 +915,16 @@
                         <td class="text-center col-acoes">
                             <div class="btn-group-acoes">
                                 <a href="{{ url_for('pin_lancamento', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
-                                   class="btn btn-action btn-outline-warning btn-pin {% if l.Fixado == 'Sim' %}fixado{% endif %}" 
+                                   class="btn btn-action btn-warning btn-pin {% if l.Fixado == 'Sim' %}fixado{% endif %}" 
                                    title="Fixar">
                                     <i class="fas fa-thumbtack"></i>
                                 </a>
                                 <a href="{{ url_for('edit_lancamento_form', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
-                                   class="btn btn-action btn-outline-primary" title="Editar">
+                                   class="btn btn-action btn-primary" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <a href="{{ url_for('delete_lancamento', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
-                                   class="btn btn-action btn-outline-danger" 
+                                   class="btn btn-action btn-danger" 
                                    onclick="return confirm('Excluir este lançamento?')" title="Excluir">
                                     <i class="fas fa-trash"></i>
                                 </a>
@@ -967,20 +967,20 @@
                 </div>
                 <div class="transaction-actions">
                     <a href="{{ url_for('toggle_status', id=l.ID, filtro_mes=filtro_atual) }}" 
-                       class="btn btn-sm btn-outline-{{ 'success' if l.Status != 'Pago' else 'secondary' }}" 
+                       class="btn btn-sm btn-{{ 'success' if l.Status != 'Pago' else 'secondary' }}" 
                        title="{{ 'Marcar como pago' if l.Status != 'Pago' else 'Marcar como pendente' }}">
                         <i class="fas fa-check"></i>
                     </a>
                     <a href="{{ url_for('pin_lancamento', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
-                       class="btn btn-sm btn-outline-warning" title="Fixar">
+                       class="btn btn-sm btn-warning" title="Fixar">
                         <i class="fas fa-thumbtack"></i>
                     </a>
                     <a href="{{ url_for('edit_lancamento_form', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
-                       class="btn btn-sm btn-outline-primary" title="Editar">
+                       class="btn btn-sm btn-primary" title="Editar">
                         <i class="fas fa-edit"></i>
                     </a>
                     <a href="{{ url_for('delete_lancamento', lancamento_id=l.ID, filtro_mes=filtro_atual) }}" 
-                       class="btn btn-sm btn-outline-danger" 
+                       class="btn btn-sm btn-danger" 
                        onclick="return confirm('Excluir?')" title="Excluir">
                         <i class="fas fa-trash"></i>
                     </a>
