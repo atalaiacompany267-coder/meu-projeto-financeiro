@@ -7,6 +7,37 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    
+    <!-- SCRIPT CRÍTICO: Aplicar tema ANTES de qualquer renderização -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            const html = document.documentElement;
+            
+            // Aplica tema IMEDIATAMENTE (antes do CSS carregar)
+            html.setAttribute('data-theme', savedTheme);
+            html.style.backgroundColor = savedTheme === 'dark' ? '#121212' : '#f8f9fa';
+            
+            // Desabilita transições durante carregamento inicial
+            html.classList.add('theme-loading');
+            
+            // Remove classe após DOM carregar (habilita transições novamente)
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(function() {
+                    html.classList.remove('theme-loading');
+                }, 100);
+            });
+        })();
+    </script>
+    
+    <!-- Meta tag theme-color dinâmica -->
+    <meta name="theme-color" content="#f8f9fa" id="theme-color-meta">
+    <script>
+        const metaThemeColor = document.getElementById('theme-color-meta');
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        metaThemeColor.setAttribute('content', currentTheme === 'dark' ? '#121212' : '#f8f9fa');
+    </script>
+    
     <title>{% block title %}Controle Financeiro{% endblock %}</title>
     
     <!-- Favicon e Logo -->
@@ -22,6 +53,17 @@
     
     <!-- FORÇAR ESTILOS COM !important - IGNORAR CACHE -->
     <style id="force-styles">
+        /* ========================================
+           DESABILITAR TRANSIÇÕES DURANTE CARREGAMENTO
+           ======================================== */
+        .theme-loading,
+        .theme-loading *,
+        .theme-loading *::before,
+        .theme-loading *::after {
+            transition: none !important;
+            animation: none !important;
+        }
+        
         /* ========================================
            DROPDOWN DA ENGRENAGEM - FORÇAR VISIBILIDADE
            ======================================== */
@@ -3130,6 +3172,7 @@
             const html = document.documentElement;
             const themeBtn = document.getElementById('btn-theme');
             const themeIcon = themeBtn.querySelector('i');
+            const metaThemeColor = document.getElementById('theme-color-meta');
             
             // Load saved theme
             const savedTheme = localStorage.getItem('theme') || 'light';
@@ -3141,10 +3184,25 @@
                 const currentTheme = html.getAttribute('data-theme');
                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
                 
+                // Desabilita transições durante troca de tema
+                html.classList.add('theme-loading');
+                
+                // Aplica novo tema
                 html.setAttribute('data-theme', newTheme);
+                html.style.backgroundColor = newTheme === 'dark' ? '#121212' : '#f8f9fa';
                 localStorage.setItem('theme', newTheme);
                 updateThemeIcon(newTheme);
                 updateDropdownColors(newTheme); // Atualiza cores do dropdown
+                
+                // Atualiza meta tag theme-color
+                if (metaThemeColor) {
+                    metaThemeColor.setAttribute('content', newTheme === 'dark' ? '#121212' : '#f8f9fa');
+                }
+                
+                // Reabilita transições após troca
+                setTimeout(function() {
+                    html.classList.remove('theme-loading');
+                }, 50);
                 
                 // Atualizar contraste dos gráficos Chart.js
                 updateChartTheme(newTheme);
