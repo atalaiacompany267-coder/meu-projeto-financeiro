@@ -16,36 +16,67 @@
 
 {% block content %}
 <style>
-    /* Cards de Resumo - Mobile em linha horizontal */
+    /* ========================================
+       CARDS DE RESUMO - MOBILE EM LINHA
+       Forçar 3 cards lado a lado SEMPRE
+       ======================================== */
+    
+    /* Container dos cards - FLEX horizontal forçado */
+    .relatorio-stats-row {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        gap: 0.5rem !important;
+    }
+    
+    .relatorio-stats-row > [class*="col"] {
+        flex: 1 1 0 !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        width: auto !important;
+    }
+    
+    /* Mobile: ajustes de tamanho */
     @media (max-width: 575px) {
         .relatorio-stats-row {
-            display: flex !important;
-            flex-wrap: nowrap !important;
-            gap: 0.5rem !important;
+            gap: 0.35rem !important;
+            padding: 0 !important;
         }
         
-        .relatorio-stats-row > .col-4 {
-            flex: 1 1 0 !important;
-            min-width: 0 !important;
-            max-width: none !important;
+        .relatorio-stats-row > [class*="col"] {
             padding: 0 !important;
         }
         
         .relatorio-stats-row .stat-card .card-body {
-            padding: 0.75rem !important;
+            padding: 0.5rem !important;
         }
         
         .relatorio-stats-row .stat-label {
-            font-size: 0.65rem !important;
+            font-size: 0.6rem !important;
+            margin-bottom: 0.15rem !important;
         }
         
         .relatorio-stats-row .stat-value {
-            font-size: 0.85rem !important;
+            font-size: 0.75rem !important;
             white-space: nowrap !important;
         }
         
         .relatorio-stats-row .stat-icon {
             display: none !important;
+        }
+    }
+    
+    /* Tablet */
+    @media (min-width: 576px) and (max-width: 767px) {
+        .relatorio-stats-row .stat-card .card-body {
+            padding: 0.75rem !important;
+        }
+        
+        .relatorio-stats-row .stat-label {
+            font-size: 0.7rem !important;
+        }
+        
+        .relatorio-stats-row .stat-value {
+            font-size: 0.9rem !important;
         }
     }
 </style>
@@ -58,7 +89,7 @@
                 <div class="d-flex justify-content-between align-items-start flex-column flex-sm-row">
                     <div class="flex-grow-1" style="min-width: 0;">
                         <p class="stat-label mb-1">Total Entradas</p>
-                        <h3 class="stat-value privacy-mask mb-0 text-success" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
+                        <h3 class="stat-value privacy-mask mb-0" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
                             R$ {{ "%.2f"|format(total_entrada) }}
                         </h3>
                     </div>
@@ -75,7 +106,7 @@
                 <div class="d-flex justify-content-between align-items-start flex-column flex-sm-row">
                     <div class="flex-grow-1" style="min-width: 0;">
                         <p class="stat-label mb-1">Total Saídas</p>
-                        <h3 class="stat-value privacy-mask mb-0 text-danger" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
+                        <h3 class="stat-value privacy-mask mb-0" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
                             R$ {{ "%.2f"|format(total_saida) }}
                         </h3>
                     </div>
@@ -92,7 +123,7 @@
                 <div class="d-flex justify-content-between align-items-start flex-column flex-sm-row">
                     <div class="flex-grow-1" style="min-width: 0;">
                         <p class="stat-label mb-1">Saldo Anual</p>
-                        <h3 class="stat-value privacy-mask mb-0 text-primary" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
+                        <h3 class="stat-value privacy-mask mb-0" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
                             R$ {{ "%.2f"|format(total_saldo) }}
                         </h3>
                     </div>

@@ -1129,45 +1129,11 @@
         }
         
         /* ========================================
-           DARK MODE - STAT CARDS FIX
+           STAT CARDS - FUNDOS COLORIDOS VIBRANTES
+           TEXTO SEMPRE BRANCO (Claro e Escuro)
            ======================================== */
-        /* Corrige o fundo dos stat-cards no dark mode */
-        [data-theme="dark"] .stat-card {
-            background-color: #1a1a1a !important;
-            border-color: #2d2d2d !important;
-            border-radius: 12px !important;
-        }
         
-        [data-theme="dark"] .stat-card .card-body {
-            background-color: transparent !important;
-        }
-        
-        /* Garante que os valores sejam visíveis no dark mode */
-        [data-theme="dark"] .stat-value {
-            color: #f8f9fa !important;
-        }
-        
-        [data-theme="dark"] .stat-label {
-            color: #adb5bd !important;
-        }
-        
-        /* Ícones com fundo suave no dark mode */
-        [data-theme="dark"] .stat-card.entrada .stat-icon {
-            background: rgba(25, 135, 84, 0.15) !important;
-            color: #10b981 !important;
-        }
-        
-        [data-theme="dark"] .stat-card.saida .stat-icon {
-            background: rgba(220, 53, 69, 0.15) !important;
-            color: #ef4444 !important;
-        }
-        
-        [data-theme="dark"] .stat-card.saldo .stat-icon {
-            background: rgba(13, 110, 253, 0.15) !important;
-            color: #3b82f6 !important;
-        }
-        
-        /* Stat Cards */
+        /* Stat Cards - Base */
         .stat-card {
             border-left: 4px solid;
             transition: transform 0.2s ease;
@@ -1177,10 +1143,39 @@
             transform: translateY(-2px);
         }
         
-        .stat-card.entrada { border-color: var(--color-entrada); }
-        .stat-card.saida { border-color: var(--color-saida); }
-        .stat-card.saldo { border-color: var(--color-saldo); }
+        /* FUNDOS COLORIDOS */
+        .stat-card.entrada { 
+            border-color: #10b981;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        }
         
+        .stat-card.saida { 
+            border-color: #ef4444;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        }
+        
+        .stat-card.saldo { 
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        }
+        
+        /* TEXTO BRANCO PURO - SEMPRE (Modo Claro e Escuro) */
+        .stat-card .stat-label,
+        .stat-card .stat-value,
+        .stat-card h3,
+        .stat-card h4,
+        .stat-card p,
+        .stat-card small,
+        .stat-card .text-success,
+        .stat-card .text-danger,
+        .stat-card .text-primary,
+        .stat-card i,
+        .stat-card .card-body * {
+            color: #ffffff !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Ícone com fundo branco semi-transparente */
         .stat-card .stat-icon {
             width: 48px;
             height: 48px;
@@ -1189,11 +1184,101 @@
             align-items: center;
             justify-content: center;
             font-size: 1.25rem;
+            background: rgba(255, 255, 255, 0.2) !important;
+            color: #ffffff !important;
         }
         
-        .stat-card.entrada .stat-icon { background: rgba(25, 135, 84, 0.1); color: var(--color-entrada); }
-        .stat-card.saida .stat-icon { background: rgba(220, 53, 69, 0.1); color: var(--color-saida); }
-        .stat-card.saldo .stat-icon { background: rgba(13, 110, 253, 0.1); color: var(--color-saldo); }
+        /* INDICADORES DE PORCENTAGEM COM GLOW */
+        .stat-card .trend-indicator {
+            font-weight: 700;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        /* Indicador POSITIVO - Verde Lima Brilhante com glow */
+        .stat-card .trend-up,
+        .stat-card .trend-positive,
+        .stat-card small.text-success {
+            color: #a3e635 !important; /* Verde Lima Brilhante */
+            text-shadow: 0 0 8px rgba(163, 230, 53, 0.6), 0 0 4px rgba(163, 230, 53, 0.4) !important;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+        }
+        
+        /* Indicador NEGATIVO - Vermelho Vivo Brilhante com glow */
+        .stat-card .trend-down,
+        .stat-card .trend-negative,
+        .stat-card small.text-danger {
+            color: #fca5a5 !important; /* Vermelho Claro Brilhante */
+            text-shadow: 0 0 8px rgba(252, 165, 165, 0.6), 0 0 4px rgba(252, 165, 165, 0.4) !important;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+        }
+        
+        /* ========================================
+           DARK MODE - MESMAS CORES (BRANCO)
+           ======================================== */
+        [data-theme="dark"] .stat-card.entrada {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            border-color: #10b981 !important;
+        }
+        
+        [data-theme="dark"] .stat-card.saida {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+            border-color: #ef4444 !important;
+        }
+        
+        [data-theme="dark"] .stat-card.saldo {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+            border-color: #3b82f6 !important;
+        }
+        
+        [data-theme="dark"] .stat-card .card-body {
+            background-color: transparent !important;
+        }
+        
+        /* TEXTO BRANCO TAMBÉM NO DARK MODE */
+        [data-theme="dark"] .stat-card .stat-value,
+        [data-theme="dark"] .stat-card .stat-label,
+        [data-theme="dark"] .stat-card h3,
+        [data-theme="dark"] .stat-card h4,
+        [data-theme="dark"] .stat-card p,
+        [data-theme="dark"] .stat-card small,
+        [data-theme="dark"] .stat-card .text-success,
+        [data-theme="dark"] .stat-card .text-danger,
+        [data-theme="dark"] .stat-card .text-primary,
+        [data-theme="dark"] .stat-card i,
+        [data-theme="dark"] .stat-card .card-body * {
+            color: #ffffff !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Ícones com fundo branco no dark mode também */
+        [data-theme="dark"] .stat-card .stat-icon {
+            background: rgba(255, 255, 255, 0.2) !important;
+            color: #ffffff !important;
+        }
+        
+        /* Indicadores no dark mode */
+        [data-theme="dark"] .stat-card .trend-up,
+        [data-theme="dark"] .stat-card .trend-positive,
+        [data-theme="dark"] .stat-card small.text-success {
+            color: #a3e635 !important;
+            text-shadow: 0 0 8px rgba(163, 230, 53, 0.6), 0 0 4px rgba(163, 230, 53, 0.4) !important;
+        }
+        
+        [data-theme="dark"] .stat-card .trend-down,
+        [data-theme="dark"] .stat-card .trend-negative,
+        [data-theme="dark"] .stat-card small.text-danger {
+            color: #fca5a5 !important;
+            text-shadow: 0 0 8px rgba(252, 165, 165, 0.6), 0 0 4px rgba(252, 165, 165, 0.4) !important;
+        }
         
         .stat-value {
             font-size: clamp(1rem, 4vw, 2rem);

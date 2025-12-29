@@ -8,6 +8,107 @@
 {% block content %}
 <style>
     /* ========================================
+       FORMULÁRIO METAS/DÍVIDAS - CONFORTÁVEL
+       Fontes legíveis, campos espaçados
+       ======================================== */
+    
+    /* Card do formulário confortável */
+    .meta-form-card {
+        margin-bottom: 1.5rem;
+    }
+    
+    .meta-form-card .card-header {
+        padding: 0.75rem 1.25rem;
+        font-size: 1rem;
+    }
+    
+    .meta-form-card .card-body {
+        padding: 1.25rem;
+    }
+    
+    /* Seletor de tipo espaçado */
+    .tipo-meta-selector {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .tipo-meta-option {
+        flex: 1;
+        padding: 0.875rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        cursor: pointer !important;
+        transition: all 0.3s ease;
+        text-align: center;
+        background: var(--bg-secondary);
+        position: relative;
+        z-index: 2;
+    }
+    
+    .tipo-meta-option i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        display: block;
+        pointer-events: none !important;
+    }
+    
+    .tipo-meta-option strong {
+        font-size: 1rem;
+    }
+    
+    .tipo-meta-option small {
+        font-size: 0.8rem;
+        display: block;
+        margin-top: 0.25rem;
+        color: var(--text-secondary);
+    }
+    
+    /* Campos com tamanho confortável */
+    .campos-guardar .form-label,
+    .campos-quitar .form-label {
+        font-size: 0.9rem;
+        margin-bottom: 0.4rem;
+        font-weight: 500;
+    }
+    
+    .campos-guardar .form-control,
+    .campos-guardar .form-select,
+    .campos-quitar .form-control,
+    .campos-quitar .form-select {
+        padding: 0.6rem 0.75rem;
+        font-size: 1rem;
+        height: auto;
+        min-height: 44px;
+    }
+    
+    /* Gap adequado entre campos */
+    .campos-guardar.row,
+    .campos-quitar.row {
+        --bs-gutter-y: 0.75rem;
+        --bs-gutter-x: 0.75rem;
+    }
+    
+    /* Botão grande e destaque */
+    .campos-guardar .btn,
+    .campos-quitar .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        min-height: 50px;
+    }
+    
+    /* Esconder campo de vínculo por padrão - toggle */
+    .campo-vinculo-wrapper {
+        display: none;
+    }
+    
+    .campo-vinculo-wrapper.show {
+        display: block;
+    }
+    
+    /* ========================================
        CORREÇÃO DE BLOQUEIO - METAS PAGE
        Garante que TODOS elementos sejam clicáveis
        ======================================== */
@@ -24,28 +125,6 @@
     #addValueModal,
     #addValueModal * {
         pointer-events: auto !important;
-    }
-    
-    /* Estilo dos tipos de meta */
-    .tipo-meta-selector {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 1rem;
-        position: relative;
-        z-index: 1;
-    }
-    
-    .tipo-meta-option {
-        flex: 1;
-        padding: 1rem;
-        border: 2px solid var(--border-color);
-        border-radius: 12px;
-        cursor: pointer !important;
-        transition: all 0.3s ease;
-        text-align: center;
-        background: var(--bg-secondary);
-        position: relative;
-        z-index: 2;
     }
     
     .tipo-meta-option:hover {
@@ -66,13 +145,6 @@
     .tipo-meta-option.active.quitar {
         border-color: var(--color-danger);
         background: rgba(231, 76, 60, 0.1);
-    }
-    
-    .tipo-meta-option i {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-        display: block;
-        pointer-events: none !important;
     }
     
     .tipo-meta-option.guardar i {
@@ -352,18 +424,60 @@
         font-weight: 500 !important;
     }
     
-    /* Cores específicas dos botões - Verde, Branco, Vermelho */
+    /* ========================================
+       BOTÕES DE AÇÃO - CORES SÓLIDAS FORTES
+       Guardar = Verde | Quitar = Vermelho
+       ======================================== */
+    
+    /* Botão GUARDAR (Porquinho) - Verde Esmeralda Forte */
+    .meta-action-buttons .btn-guardar {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        border: none !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+    }
+    
+    .meta-action-buttons .btn-guardar:hover {
+        background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.5) !important;
+    }
+    
+    .meta-action-buttons .btn-guardar i {
+        color: #ffffff !important;
+    }
+    
+    /* Botão QUITAR (Moedas/Dívida) - Vermelho Coral Forte */
+    .meta-action-buttons .btn-quitar {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        border: none !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+    }
+    
+    .meta-action-buttons .btn-quitar:hover {
+        background: linear-gradient(135deg, #f87171 0%, #ef4444 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5) !important;
+    }
+    
+    .meta-action-buttons .btn-quitar i {
+        color: #ffffff !important;
+    }
+    
+    /* Fallback para btn-success antigo (manter compatibilidade) */
     .meta-action-buttons .btn-success {
-        background-color: #28a745 !important;
-        border-color: #28a745 !important;
-        color: white !important;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        border: none !important;
+        color: #ffffff !important;
     }
     
     .meta-action-buttons .btn-success:hover {
-        background-color: #218838 !important;
-        border-color: #1e7e34 !important;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.5) !important;
     }
     
     .meta-action-buttons .btn-outline-secondary {
@@ -503,6 +617,21 @@
         align-items: center;
         gap: 0.25rem;
     }
+    
+    /* ========================================
+       BOTÕES DO FORMULÁRIO - EFEITO HOVER
+       ======================================== */
+    .campos-guardar .btn,
+    .campos-quitar .btn {
+        transition: all 0.3s ease !important;
+    }
+    
+    .campos-guardar .btn:hover,
+    .campos-quitar .btn:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+        filter: brightness(1.1) !important;
+    }
 </style>
 
 <!-- New Goal Form -->
@@ -513,30 +642,30 @@
     <div class="card-body">
         <form action="{{ url_for('add_meta') }}" method="POST" id="formNovaMeta">
             <!-- Seleção do Tipo de Meta -->
-            <div class="tipo-meta-selector mb-4">
+            <div class="tipo-meta-selector mb-3">
                 <label class="tipo-meta-option guardar active" onclick="selecionarTipo('acumular')">
                     <input type="radio" name="tipo_meta" value="acumular" checked>
                     <i class="fas fa-piggy-bank"></i>
-                    <strong>Guardar Dinheiro</strong>
-                    <small class="text-muted d-block">Reserva, viagem, compra...</small>
+                    <strong>Guardar</strong>
+                    <small>Juntar dinheiro</small>
                 </label>
                 <label class="tipo-meta-option quitar" onclick="selecionarTipo('quitar')">
                     <input type="radio" name="tipo_meta" value="quitar">
                     <i class="fas fa-file-invoice-dollar"></i>
-                    <strong>Quitar Dívida</strong>
-                    <small class="text-muted d-block">Financiamento, empréstimo...</small>
+                    <strong>Quitar</strong>
+                    <small>Pagar dívida</small>
                 </label>
             </div>
             
-            <!-- Campos para GUARDAR DINHEIRO - Layout 2 Colunas -->
+            <!-- Campos para GUARDAR DINHEIRO -->
             <div class="row g-3 align-items-end campos-guardar active" id="camposGuardar">
                 <!-- Linha 1: Nome | Valor Alvo -->
                 <div class="col-6">
-                    <label class="form-label">Nome da Meta</label>
-                    <input type="text" name="descricao" class="form-control" placeholder="Ex: Carro, Viagem" required id="descricaoGuardar">
+                    <label class="form-label">Nome</label>
+                    <input type="text" name="descricao" class="form-control" placeholder="Ex: Carro" required id="descricaoGuardar">
                 </div>
                 <div class="col-6">
-                    <label class="form-label">Valor Alvo (R$)</label>
+                    <label class="form-label">Valor Alvo</label>
                     <input type="number" step="0.01" name="valor_alvo" class="form-control" placeholder="10000" id="valorAlvo">
                 </div>
                 <!-- Linha 2: Aporte Mensal | Já Guardado -->
@@ -548,27 +677,16 @@
                     <label class="form-label">Já Guardado</label>
                     <input type="number" step="0.01" name="valor_atual" class="form-control" value="0" placeholder="0">
                 </div>
-                <!-- Linha 3: Vínculo (opcional) - largura total -->
-                <div class="col-12">
-                    <label class="form-label">
-                        <i class="fas fa-link me-1 text-info"></i>Vincular Lançamento (opcional)
-                    </label>
-                    <select name="lancamento_fixo_id" class="form-select" id="selectFixoGuardar">
-                        <option value="">-- Nenhum --</option>
-                        {% for fixo in fixos_dropdown %}
-                        <option value="{{ fixo[0] }}">{{ fixo[1] }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <!-- Botão Full-Width Centralizado -->
-                <div class="col-12">
-                    <button type="submit" class="btn btn-success w-100 py-2">
-                        <i class="fas fa-plus me-1"></i> Criar Meta
+                <!-- Botão Full-Width -->
+                <div class="col-12 mt-3">
+                    <button type="submit" class="btn w-100" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; color: #ffffff; font-weight: 600; min-height: 50px; font-size: 1.05rem;">
+                        <i class="fas fa-piggy-bank me-2"></i>Criar Meta
                     </button>
                 </div>
+                <input type="hidden" name="lancamento_fixo_id" id="selectFixoGuardar" value="">
             </div>
             
-            <!-- Campos para QUITAR DÍVIDA - Layout 2 Colunas -->
+            <!-- Campos para QUITAR DÍVIDA -->
             <div class="row g-3 align-items-end campos-quitar" id="camposQuitar">
                 <!-- Linha 1: Nome | Valor Total -->
                 <div class="col-6">
@@ -579,42 +697,24 @@
                     <label class="form-label">Valor Total</label>
                     <input type="number" step="0.01" name="valor_alvo_quitar" class="form-control" placeholder="100000" id="valorTotalQuitar">
                 </div>
-                <!-- Linha 2: Parcela | Meses Totais -->
+                <!-- Linha 2: Parcela | Já Pago -->
                 <div class="col-6">
                     <label class="form-label">Parcela (R$)</label>
                     <input type="number" step="0.01" name="valor_parcela" class="form-control" placeholder="1500" id="valorParcela">
                 </div>
                 <div class="col-6">
-                    <label class="form-label">Meses Totais</label>
-                    <input type="number" name="total_meses" class="form-control" placeholder="60" id="totalMeses">
-                </div>
-                <!-- Linha 3: Meses Pagos | Valor Já Pago (opções flexíveis) -->
-                <div class="col-6">
-                    <label class="form-label">Meses Pagos</label>
-                    <input type="number" name="meses_pagos" class="form-control" value="0" placeholder="0" id="mesesPagos">
-                </div>
-                <div class="col-6">
-                    <label class="form-label">Valor Já Pago (R$)</label>
+                    <label class="form-label">Já Pago (R$)</label>
                     <input type="number" step="0.01" name="valor_ja_pago" class="form-control" value="0" placeholder="0" id="valorJaPago">
                 </div>
-                <!-- Linha 4: Vínculo - largura total -->
-                <div class="col-12">
-                    <label class="form-label">
-                        <i class="fas fa-link me-1 text-info"></i>Vincular Lançamento (opcional)
-                    </label>
-                    <select name="lancamento_fixo_id_quitar" class="form-select" id="selectFixoQuitar">
-                        <option value="">-- Nenhum --</option>
-                        {% for fixo in fixos_dropdown %}
-                        <option value="{{ fixo[0] }}">{{ fixo[1] }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <!-- Botão Full-Width Centralizado -->
-                <div class="col-12">
-                    <button type="submit" class="btn btn-success w-100 py-2">
-                        <i class="fas fa-plus me-1"></i> Criar Dívida
+                <!-- Botão Full-Width -->
+                <div class="col-12 mt-3">
+                    <button type="submit" class="btn w-100" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; color: #ffffff; font-weight: 600; min-height: 50px; font-size: 1.05rem;">
+                        <i class="fas fa-coins me-2"></i>Criar Dívida
                     </button>
                 </div>
+                <input type="hidden" name="total_meses" id="totalMeses" value="0">
+                <input type="hidden" name="meses_pagos" id="mesesPagos" value="0">
+                <input type="hidden" name="lancamento_fixo_id_quitar" id="selectFixoQuitar" value="">
             </div>
         </form>
     </div>
@@ -752,14 +852,19 @@
                 <!-- Action Buttons - Sempre na Base -->
                 <div class="meta-actions-footer">
                     <div class="meta-action-buttons">
-                        <button class="btn btn-success btn-sm" 
+                        {% if is_divida %}
+                        <!-- Botão QUITAR - Vermelho com ícone de moedas -->
+                        <button class="btn btn-quitar btn-sm" 
                                 onclick="openAddValueModal('{{ id }}', '{{ m.descricao }}', '{{ tipo }}', '{{ m.valor_parcela }}')">
-                            {% if is_divida %}
-                            <i class="fas fa-money-bill-wave me-1"></i> Registrar
-                            {% else %}
-                            <i class="fas fa-plus me-1"></i> Adicionar
-                            {% endif %}
+                            <i class="fas fa-coins me-1"></i> Pagar
                         </button>
+                        {% else %}
+                        <!-- Botão GUARDAR - Verde com ícone de porquinho -->
+                        <button class="btn btn-guardar btn-sm" 
+                                onclick="openAddValueModal('{{ id }}', '{{ m.descricao }}', '{{ tipo }}', '{{ m.valor_parcela }}')">
+                            <i class="fas fa-piggy-bank me-1"></i> Guardar
+                        </button>
+                        {% endif %}
                         <button class="btn btn-outline-secondary btn-sm" 
                                 onclick="openEditModal('{{ id }}', '{{ m.descricao }}', '{{ tipo }}', '{{ m.valor_alvo }}', '{{ m.valor_atual }}', '{{ m.valor_parcela }}', '{{ m.total_meses }}', '{{ m.valor_aporte_mensal }}', '{{ m.lancamento_fixo_id or '' }}')">
                             <i class="fas fa-pencil-alt me-1"></i> Editar
@@ -1045,10 +1150,10 @@ function openAddValueModal(metaId, metaName, tipoMeta, valorParcela) {
     if (tipoMeta === 'quitar') {
         parcelaSugerida = parseFloat(valorParcela) || 0;
         
-        modalTitle.innerHTML = '<i class="fas fa-money-bill-wave text-danger me-2"></i>Registrar Pagamento';
+        modalTitle.innerHTML = '<i class="fas fa-coins text-danger me-2"></i>Pagar Dívida';
         modalSubtitle.innerHTML = 'Pagando dívida: <strong>' + metaName + '</strong>';
-        modalBtnSubmit.className = 'btn btn-danger';
-        modalBtnSubmit.innerHTML = '<i class="fas fa-check me-1"></i> Registrar Pagamento';
+        modalBtnSubmit.className = 'btn btn-danger w-100 py-2';
+        modalBtnSubmit.innerHTML = '<i class="fas fa-coins me-1"></i> Confirmar Pagamento';
         camposGuardar.style.display = 'none';
         camposQuitar.style.display = 'block';
         
@@ -1059,10 +1164,10 @@ function openAddValueModal(metaId, metaName, tipoMeta, valorParcela) {
         inputValorQuitar.required = true;
         inputValorQuitar.value = '';
     } else {
-        modalTitle.innerHTML = '<i class="fas fa-piggy-bank text-success me-2"></i>Adicionar Valor';
+        modalTitle.innerHTML = '<i class="fas fa-piggy-bank text-success me-2"></i>Guardar Valor';
         modalSubtitle.innerHTML = 'Adicionando à meta: <strong>' + metaName + '</strong>';
-        modalBtnSubmit.className = 'btn btn-success';
-        modalBtnSubmit.innerHTML = '<i class="fas fa-check me-1"></i> Adicionar';
+        modalBtnSubmit.className = 'btn btn-success w-100 py-2';
+        modalBtnSubmit.innerHTML = '<i class="fas fa-piggy-bank me-1"></i> Confirmar';
         camposGuardar.style.display = 'block';
         camposQuitar.style.display = 'none';
         

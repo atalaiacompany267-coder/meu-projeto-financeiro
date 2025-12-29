@@ -16,6 +16,91 @@
 {% block content %}
 <style>
     /* ========================================
+       FORMULÁRIO DASHBOARD - CONFORTÁVEL E LEGÍVEL
+       Fontes maiores, campos espaçados, botão full-width
+       ======================================== */
+    
+    /* Desktop: Formulário confortável */
+    form[action*="add_lancamento"] .form-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 0.4rem;
+        color: var(--text-primary);
+    }
+    
+    form[action*="add_lancamento"] .form-control,
+    form[action*="add_lancamento"] .form-select {
+        font-size: 1rem;
+        padding: 0.6rem 0.75rem;
+        height: auto;
+        min-height: 42px;
+    }
+    
+    /* Botão sempre full-width e destacado */
+    form[action*="add_lancamento"] button[type="submit"] {
+        width: 100% !important;
+        min-height: 50px !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 10px !important;
+        border-radius: 8px !important;
+        margin-top: 0.5rem;
+    }
+    
+    /* Mobile e Tablet */
+    @media (max-width: 991px) {
+        form[action*="add_lancamento"] .row {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 0.75rem !important;
+        }
+        
+        /* Campos em pares */
+        form[action*="add_lancamento"] .row > .col-6 {
+            flex: 0 0 calc(50% - 0.375rem) !important;
+            width: calc(50% - 0.375rem) !important;
+            max-width: calc(50% - 0.375rem) !important;
+        }
+        
+        /* Campo Valor: Largura total */
+        form[action*="add_lancamento"] .row > div.col-12:not(:last-child) {
+            flex: 0 0 100% !important;
+            width: 100% !important;
+        }
+        
+        /* Botão: Linha exclusiva */
+        form[action*="add_lancamento"] .row > div.col-12.mt-2,
+        form[action*="add_lancamento"] .row > .col-12:last-of-type {
+            flex: 0 0 100% !important;
+            width: 100% !important;
+            margin-top: 1rem !important;
+        }
+    }
+    
+    /* Mobile: Fontes confortáveis */
+    @media (max-width: 767px) {
+        form[action*="add_lancamento"] .form-label {
+            font-size: 0.875rem;
+            margin-bottom: 0.35rem;
+        }
+        
+        form[action*="add_lancamento"] .form-control,
+        form[action*="add_lancamento"] .form-select {
+            font-size: 1rem;
+            padding: 0.55rem 0.65rem;
+            min-height: 44px;
+        }
+        
+        form[action*="add_lancamento"] button[type="submit"] {
+            min-height: 52px !important;
+            font-size: 1.05rem !important;
+        }
+    }
+    
+    /* ========================================
        LEGENDA CUSTOMIZADA DO GRÁFICO - GRID 2 COLUNAS IGUAIS
        TEXTO BRANCO NO MODO ESCURO (#FFFFFF)
        ======================================== */
@@ -361,155 +446,19 @@
     }
     
     /* ========================================
-       MOBILE MÉDIO (480px - 767px) - Grid 3 Colunas
+       MOBILE MÉDIO (480px - 767px)
+       CSS do formulário gerenciado no topo
        ======================================== */
     @media (min-width: 480px) and (max-width: 767px) {
-        /* Mobile médio: 3 colunas como especificado */
-        form[action*="add_lancamento"] .row {
-            display: grid !important;
-            grid-template-columns: repeat(3, 1fr) !important;
-            gap: 12px !important;
-            align-items: start !important;
-        }
-        
-        /* Cada campo ocupa 1 coluna */
-        form[action*="add_lancamento"] .col-md-2,
-        form[action*="add_lancamento"] .col-md-1,
-        form[action*="add_lancamento"] .col-6,
-        form[action*="add_lancamento"] .col-12 {
-            grid-column: span 1 !important;
-            width: 100% !important;
-            max-width: none !important;
-        }
-        
-        /* Botão: 3 colunas (largura total) */
-        form[action*="add_lancamento"] .col-md-1:last-child {
-            grid-column: span 3 !important;
-        }
-        
-        form[action*="add_lancamento"] .form-label {
-            font-size: 0.8rem !important;
-            font-weight: 500 !important;
-            margin-bottom: 0.3rem !important;
-            text-align: left !important;
-            display: block !important;
-        }
-        
-        /* Padronização dos inputs e selects - width 100% */
-        form[action*="add_lancamento"] .form-control,
-        form[action*="add_lancamento"] .form-select {
-            width: 100% !important;
-            height: 40px !important;
-            max-width: none !important;
-            font-size: 0.85rem !important;
-            padding: 0.5rem 0.6rem !important;
-            border-radius: 6px !important;
-            box-sizing: border-box !important;
-        }
-        
-        /* Botão adicionar: verde, retangular, ícone centralizado */
-        form[action*="add_lancamento"] button[type="submit"] {
-            width: 100% !important;
-            height: 46px !important;
-            padding: 0 1.3rem !important;
-            font-size: 1.05rem !important;
-            font-weight: 700 !important;
-            background-color: #28a745 !important;
-            border-color: #28a745 !important;
-            color: white !important;
-            border-radius: 8px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 8px !important;
-        }
-        
-        form[action*="add_lancamento"] button[type="submit"]:hover {
-            background-color: #218838 !important;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.35) !important;
-        }
-        
-        form[action*="add_lancamento"] button[type="submit"] i {
-            font-size: 1.2rem !important;
-        }
+        /* FORMULÁRIO - CSS REMOVIDO (usado CSS no topo do arquivo) */
     }
     
     /* ========================================
-       MOBILE PEQUENO (< 480px) - Grid 1 Coluna
+       MOBILE PEQUENO (< 480px)
+       CSS do formulário gerenciado no topo
        ======================================== */
     @media (max-width: 479px) {
-        /* Mobile pequeno: 1 coluna */
-        form[action*="add_lancamento"] .row {
-            display: grid !important;
-            grid-template-columns: 1fr !important;
-            gap: 12px !important;
-            align-items: start !important;
-        }
-        
-        /* Todos os campos ocupam a coluna única */
-        form[action*="add_lancamento"] .col-md-2,
-        form[action*="add_lancamento"] .col-md-1,
-        form[action*="add_lancamento"] .col-6,
-        form[action*="add_lancamento"] .col-12 {
-            grid-column: span 1 !important;
-            width: 100% !important;
-            max-width: none !important;
-        }
-        
-        /* Botão: 1 coluna (100% largura) */
-        form[action*="add_lancamento"] .col-md-1:last-child {
-            grid-column: span 1 !important;
-        }
-        
-        /* Labels */
-        form[action*="add_lancamento"] .form-label {
-            font-size: 0.85rem !important;
-            font-weight: 500 !important;
-            margin-bottom: 0.3rem !important;
-            text-align: left !important;
-            display: block !important;
-        }
-        
-        /* Padronização dos inputs e selects */
-        form[action*="add_lancamento"] .form-control,
-        form[action*="add_lancamento"] .form-select {
-            width: 100% !important;
-            height: 40px !important;
-            max-width: none !important;
-            font-size: 0.875rem !important;
-            padding: 0.5rem 0.7rem !important;
-            border-radius: 6px !important;
-            box-sizing: border-box !important;
-        }
-        
-        /* Botão adicionar: grande, verde, retangular, ícone centralizado */
-        form[action*="add_lancamento"] button[type="submit"] {
-            grid-column: span 1 !important;
-            width: 100% !important;
-            height: 46px !important;
-            padding: 0 1.5rem !important;
-            font-size: 1.1rem !important;
-            font-weight: 700 !important;
-            background-color: #28a745 !important;
-            border-color: #28a745 !important;
-            color: white !important;
-            border-radius: 8px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 8px !important;
-        }
-        
-        form[action*="add_lancamento"] button[type="submit"]:hover {
-            background-color: #218838 !important;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.35) !important;
-        }
-        
-        form[action*="add_lancamento"] button[type="submit"] i {
-            font-size: 1.2rem !important;
-        }
+        /* FORMULÁRIO - CSS REMOVIDO (usado CSS no topo do arquivo) */
         
         /* Esconder tabela, mostrar cards */
         .desktop-table {
@@ -578,53 +527,7 @@
             font-size: 0.85rem !important;
         }
         
-        /* Formulário Mobile: 3 colunas x 2 linhas + botão 100% */
-        form[action*="add_lancamento"] .row {
-            display: grid !important;
-            grid-template-columns: repeat(3, 1fr) !important;
-            gap: 0.5rem !important;
-            align-items: start !important;
-        }
-        
-        /* Todos os campos em 1 coluna cada - Grid 3x2 */
-        form[action*="add_lancamento"] .col-6,
-        form[action*="add_lancamento"] .col-md-2,
-        form[action*="add_lancamento"] .col-12:not(:last-child) {
-            grid-column: span 1 !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            flex: none !important;
-        }
-        
-        /* Botão (+) - ÚLTIMA LINHA, LARGURA TOTAL 100% */
-        form[action*="add_lancamento"] .col-12:last-child,
-        form[action*="add_lancamento"] .col-md-1:last-child {
-            grid-column: 1 / -1 !important;
-            width: 100% !important;
-        }
-        
-        /* Botão verde grande no mobile */
-        form[action*="add_lancamento"] button[type="submit"] {
-            width: 100% !important;
-            height: 46px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 8px !important;
-            font-size: 1rem !important;
-            font-weight: 600 !important;
-            background-color: #28a745 !important;
-            border-color: #28a745 !important;
-            color: white !important;
-            border-radius: 8px !important;
-        }
-        
-        /* Inputs menores no mobile */
-        form[action*="add_lancamento"] .form-control,
-        form[action*="add_lancamento"] .form-select {
-            font-size: 0.75rem !important;
-            padding: 0.35rem 0.5rem !important;
-        }
+        /* FORMULÁRIO MOBILE - CSS REMOVIDO (usado CSS no topo do arquivo) */
         
         form[action*="add_lancamento"] .form-label {
             font-size: 0.7rem !important;
@@ -674,8 +577,8 @@
                     <div class="d-flex justify-content-between align-items-start flex-column flex-sm-row">
                         <div class="flex-grow-1" style="min-width: 0;">
                             <p class="stat-label mb-1">Entradas</p>
-                            <h3 class="stat-value privacy-mask mb-0 text-success" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">R$ {{ "%.2f"|format(entrada) }}</h3>
-                            <small class="text-{{ 'success' if trend_ent_pct > 0 else 'danger' }} d-none d-md-inline">
+                            <h3 class="stat-value privacy-mask mb-0" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">R$ {{ "%.2f"|format(entrada) }}</h3>
+                            <small class="d-none d-md-inline" style="color: #ffffff !important;">
                                 <i class="fas fa-arrow-{{ 'up' if trend_ent_pct > 0 else 'down' }}"></i>
                                 {{ "%.0f"|format(trend_ent_pct|abs) }}%
                             </small>
@@ -693,8 +596,8 @@
                     <div class="d-flex justify-content-between align-items-start flex-column flex-sm-row">
                         <div class="flex-grow-1" style="min-width: 0;">
                             <p class="stat-label mb-1">Saídas</p>
-                            <h3 class="stat-value privacy-mask mb-0 text-danger" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">R$ {{ "%.2f"|format(saida|abs) }}</h3>
-                            <small class="text-{{ 'danger' if trend_sai_pct > 0 else 'success' }} d-none d-md-inline">
+                            <h3 class="stat-value privacy-mask mb-0" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">R$ {{ "%.2f"|format(saida|abs) }}</h3>
+                            <small class="d-none d-md-inline" style="color: #ffffff !important;">
                                 <i class="fas fa-arrow-{{ 'up' if trend_sai_pct > 0 else 'down' }}"></i>
                                 {{ "%.0f"|format(trend_sai_pct|abs) }}%
                             </small>
@@ -712,7 +615,7 @@
                     <div class="d-flex justify-content-between align-items-start flex-column flex-sm-row">
                         <div class="flex-grow-1" style="min-width: 0;">
                             <p class="stat-label mb-1">Saldo</p>
-                            <h3 class="stat-value privacy-mask mb-0 text-primary" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important;">
+                            <h3 class="stat-value privacy-mask mb-0" style="font-size: clamp(0.9rem, 3.5vw, 1.5rem) !important; font-weight: 800 !important; line-height: 1.2 !important; white-space: nowrap !important; color: #ffffff !important;">
                                 R$ {{ "%.2f"|format(saldo) }}
                             </h3>
                         </div>
@@ -806,19 +709,27 @@
         <form action="{{ url_for('add_lancamento') }}" method="POST">
             <div class="row g-3">
                 <!-- Linha 1: Data | Tipo -->
-                <div class="col-6">
+                <div class="col-6 col-md-4 col-lg-2">
                     <label class="form-label">Data</label>
                     <input type="text" name="data" class="form-control date-mask" value="{{ hoje_br }}" required>
                 </div>
-                <div class="col-6">
+                <div class="col-6 col-md-4 col-lg-2">
                     <label class="form-label">Tipo</label>
                     <select name="tipo" class="form-select">
                         <option value="SAIDA">Saída</option>
                         <option value="ENTRADA">Entrada</option>
                     </select>
                 </div>
-                <!-- Linha 2: Categoria | Classificação -->
-                <div class="col-6">
+                <!-- Linha 2: Classificação | Categoria -->
+                <div class="col-6 col-md-4 col-lg-2">
+                    <label class="form-label">Classificação</label>
+                    <select name="classificacao" class="form-select">
+                        <option value="Essenciais">Essenciais</option>
+                        <option value="Estilo de Vida">Estilo de Vida</option>
+                        <option value="Investimentos">Investimentos</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-6 col-lg-3">
                     <label class="form-label">Categoria</label>
                     <input name="categoria" class="form-control" list="categorias-list" required placeholder="Ex: Mercado">
                     <datalist id="categorias-list">
@@ -827,34 +738,17 @@
                         {% endfor %}
                     </datalist>
                 </div>
-                <div class="col-6">
-                    <label class="form-label">Classificação</label>
-                    <select name="classificacao" class="form-select">
-                        <option value="Essenciais">Essenciais</option>
-                        <option value="Estilo de Vida">Estilo de Vida</option>
-                        <option value="Investimentos">Investimentos</option>
-                    </select>
-                </div>
-                <!-- Linha 3: Valor | Meta -->
-                <div class="col-6">
+                <!-- Linha 3: Valor -->
+                <div class="col-12 col-md-6 col-lg-3">
                     <label class="form-label">Valor (R$)</label>
                     <input type="number" step="0.01" name="valor" class="form-control" required placeholder="0.00">
                 </div>
-                <div class="col-6">
-                    <label class="form-label">Vincular Meta</label>
-                    <select name="meta_id" class="form-select">
-                        <option value="">Nenhuma</option>
-                        {% for meta in metas_dropdown %}
-                        <option value="{{ meta[0] }}">
-                            {{ meta[1] }}{% if meta[2] == 'quitar' %} (Dívida){% endif %}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <!-- Botão Full-Width -->
-                <div class="col-12">
-                    <button type="submit" class="btn btn-success w-100 py-2">
-                        <i class="fas fa-plus me-1"></i> Adicionar Lançamento
+                <!-- Vínculo de Meta (opcional) -->
+                <input type="hidden" name="meta_id" value="">
+                <!-- Linha Final: Botão Full-Width -->
+                <div class="col-12 mt-2">
+                    <button type="submit" class="btn w-100" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; color: #ffffff; font-weight: 600; font-size: 1.1rem; min-height: 50px;">
+                        <i class="fas fa-plus me-2"></i>Adicionar Lançamento
                     </button>
                 </div>
             </div>
