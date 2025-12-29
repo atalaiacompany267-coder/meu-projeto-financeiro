@@ -5,12 +5,43 @@
 {% block page_title %}Dashboard{% endblock %}
 
 {% block navbar_extra %}
-<form action="{{ url_for('dashboard') }}" method="GET" class="d-flex" style="display: flex !important; align-items: center !important; gap: 8px !important; margin: 0 !important; flex-shrink: 0 !important;">
-    <input type="month" name="filtro_mes" class="form-control month-selector" value="{{ filtro_atual }}">
-    <button class="btn btn-primary" type="submit" title="Filtrar">
+<form action="{{ url_for('dashboard') }}" method="GET" class="d-flex filter-form-dashboard" id="filterFormDashboard" style="display: flex !important; align-items: center !important; gap: 8px !important; margin: 0 !important; flex-shrink: 0 !important;">
+    <input type="text" name="filtro_mes" class="form-control month-selector" value="{{ filtro_atual }}" placeholder="AAAA-MM" pattern="\d{4}-\d{2}" inputmode="numeric" onchange="this.form.submit()" onkeypress="if(event.key==='Enter'){this.form.submit()}" maxlength="7" style="text-align: center;">
+    <button class="btn btn-primary filter-submit-btn" type="submit" title="Filtrar">
         <i class="fas fa-filter"></i>
     </button>
 </form>
+<style>
+    /* Ocultar botão de filtro apenas no mobile */
+    @media (max-width: 767px) {
+        .filter-submit-btn {
+            display: none !important;
+        }
+    }
+    
+    /* Sincronização visual dos campos de filtro */
+    .filter-form-dashboard input.month-selector,
+    .filter-form-relatorio input[name="filtro_ano"] {
+        height: 38px !important;
+        font-size: 1rem !important;
+        padding: 0.5rem 0.75rem !important;
+        border-radius: 6px !important;
+        border: 1px solid var(--border-color) !important;
+        background-color: var(--bg-primary) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    @media (max-width: 767px) {
+        .filter-form-dashboard input.month-selector,
+        .filter-form-relatorio input[name="filtro_ano"] {
+            min-width: 95px !important;
+            max-width: 110px !important;
+            font-size: 0.75rem !important;
+            padding: 0.4rem 0.5rem !important;
+            height: 32px !important;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}

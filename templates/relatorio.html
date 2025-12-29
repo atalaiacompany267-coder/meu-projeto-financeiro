@@ -5,12 +5,41 @@
 {% block page_title %}Relatório Anual{% endblock %}
 
 {% block navbar_extra %}
-<form action="{{ url_for('relatorio_anual') }}" method="GET" class="d-flex" style="display: flex !important; align-items: center !important; gap: 8px !important; margin: 0 !important; flex-shrink: 0 !important;">
-    <input type="number" name="filtro_ano" class="form-control" value="{{ ano_atual }}" min="2020" max="2035" placeholder="Ano" style="min-width: 100px; max-width: 120px; text-align: center;">
-    <button class="btn btn-primary" type="submit" title="Filtrar">
+<form action="{{ url_for('relatorio_anual') }}" method="GET" class="d-flex filter-form-relatorio" id="filterFormRelatorio" style="display: flex !important; align-items: center !important; gap: 8px !important; margin: 0 !important; flex-shrink: 0 !important;">
+    <input type="text" name="filtro_ano" class="form-control" value="{{ ano_atual }}" min="2020" max="2035" placeholder="AAAA" inputmode="numeric" pattern="\d{4}" onchange="this.form.submit()" onkeypress="if(event.key==='Enter'){this.form.submit()}" maxlength="4" style="min-width: 100px; max-width: 120px; text-align: center;">
+    <button class="btn btn-primary filter-submit-btn" type="submit" title="Filtrar">
         <i class="fas fa-filter"></i>
     </button>
 </form>
+<style>
+    /* Ocultar botão de filtro apenas no mobile */
+    @media (max-width: 767px) {
+        .filter-submit-btn {
+            display: none !important;
+        }
+    }
+    
+    /* Sincronização visual dos campos de filtro */
+    .filter-form-relatorio input[name="filtro_ano"] {
+        height: 38px !important;
+        font-size: 1rem !important;
+        padding: 0.5rem 0.75rem !important;
+        border-radius: 6px !important;
+        border: 1px solid var(--border-color) !important;
+        background-color: var(--bg-primary) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    @media (max-width: 767px) {
+        .filter-form-relatorio input[name="filtro_ano"] {
+            min-width: 95px !important;
+            max-width: 110px !important;
+            font-size: 0.75rem !important;
+            padding: 0.4rem 0.5rem !important;
+            height: 32px !important;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
