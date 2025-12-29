@@ -1021,24 +1021,8 @@
            ======================================== */
         .month-selector,
         .navbar-actions form input[type="month"] {
-            min-width: 160px;
-            width: auto;
-            max-width: 200px;
-            padding: 0.5rem 2.5rem 0.5rem 0.75rem !important;
-            font-size: 0.95rem;
-            background-position: right 0.5rem center;
-            background-size: 16px 12px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        /* Garante que o texto não seja cortado */
-        .month-selector::-webkit-calendar-picker-indicator,
-        input[type="month"]::-webkit-calendar-picker-indicator {
-            position: absolute;
-            right: 8px;
-            cursor: pointer;
-            z-index: 2;
+            min-width: 140px;
+            max-width: 180px;
         }
         
         /* ========================================
@@ -2469,11 +2453,8 @@
             .month-selector,
             .navbar-actions form input[type="month"] {
                 min-width: 100px !important;
-                max-width: 100px !important;
-                width: 100px !important;
-                font-size: 0.75rem !important;
-                padding: 0.35rem 1.5rem 0.35rem 0.45rem !important;
-                pointer-events: auto !important;
+                max-width: 120px !important;
+                font-size: 0.8rem !important;
             }
             
             .navbar-actions form .btn {
@@ -2862,10 +2843,8 @@
             .navbar-actions form input[type="month"],
             .month-selector {
                 min-width: 95px !important;
-                max-width: 95px !important;
-                width: 95px !important;
-                font-size: 0.7rem !important;
-                padding: 0.3rem 1.2rem 0.3rem 0.4rem !important;
+                max-width: 110px !important;
+                font-size: 0.75rem !important;
                 height: 32px !important;
             }
             
@@ -2959,18 +2938,13 @@
            EXTRA SMALL DEVICES (< 380px)
            ======================================== */
         @media (max-width: 379.98px) {
-            /* Seletor de mês ainda menor com ellipsis */
+            /* Seletor de mês ainda menor */
             .navbar-actions form input[type="month"],
             .month-selector {
                 min-width: 85px !important;
                 max-width: 100px !important;
-                width: 90px !important;
                 font-size: 0.7rem !important;
-                padding: 0.25rem 0.2rem 0.25rem 0.35rem !important;
                 height: 32px !important;
-                text-overflow: ellipsis !important;
-                white-space: nowrap !important;
-                overflow: hidden !important;
             }
             
             .navbar-actions form .btn {
