@@ -677,13 +677,23 @@
                     <label class="form-label">Já Guardado</label>
                     <input type="number" step="0.01" name="valor_atual" class="form-control" value="0" placeholder="0">
                 </div>
+                <!-- Vincular Lançamento Fixo -->
+                <div class="col-12">
+                    <label class="form-label"><i class="fas fa-link me-1 text-info"></i>Vincular Lançamento Fixo</label>
+                    <select name="lancamento_fixo_id" id="selectFixoGuardar" class="form-select">
+                        <option value="">-- Nenhum (atualização manual) --</option>
+                        {% for fixo in fixos_dropdown %}
+                        <option value="{{ fixo[0] }}">{{ fixo[1] }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted d-block mt-1">Opcional: vincula um lançamento fixo para atualização automática</small>
+                </div>
                 <!-- Botão Full-Width -->
                 <div class="col-12 mt-3">
                     <button type="submit" class="btn w-100" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; color: #ffffff; font-weight: 600; min-height: 50px; font-size: 1.05rem;">
                         <i class="fas fa-piggy-bank me-2"></i>Criar Meta
                     </button>
                 </div>
-                <input type="hidden" name="lancamento_fixo_id" id="selectFixoGuardar" value="">
             </div>
             
             <!-- Campos para QUITAR DÍVIDA -->
@@ -706,6 +716,17 @@
                     <label class="form-label">Já Pago (R$)</label>
                     <input type="number" step="0.01" name="valor_ja_pago" class="form-control" value="0" placeholder="0" id="valorJaPago">
                 </div>
+                <!-- Vincular Lançamento Fixo -->
+                <div class="col-12">
+                    <label class="form-label"><i class="fas fa-link me-1 text-info"></i>Vincular Lançamento Fixo</label>
+                    <select name="lancamento_fixo_id_quitar" id="selectFixoQuitar" class="form-select">
+                        <option value="">-- Nenhum (atualização manual) --</option>
+                        {% for fixo in fixos_dropdown %}
+                        <option value="{{ fixo[0] }}">{{ fixo[1] }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted d-block mt-1">Opcional: vincula um lançamento fixo para atualização automática</small>
+                </div>
                 <!-- Botão Full-Width -->
                 <div class="col-12 mt-3">
                     <button type="submit" class="btn w-100" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; color: #ffffff; font-weight: 600; min-height: 50px; font-size: 1.05rem;">
@@ -714,7 +735,6 @@
                 </div>
                 <input type="hidden" name="total_meses" id="totalMeses" value="0">
                 <input type="hidden" name="meses_pagos" id="mesesPagos" value="0">
-                <input type="hidden" name="lancamento_fixo_id_quitar" id="selectFixoQuitar" value="">
             </div>
         </form>
     </div>
@@ -1023,7 +1043,7 @@
                 <!-- Vínculo com Lançamento Fixo - comum para ambos -->
                 <div class="mt-3 pt-3 border-top">
                     <label class="form-label">
-                        <i class="fas fa-link me-1 text-info"></i>Vincular a Lançamento Fixo
+                        <i class="fas fa-link me-1 text-info"></i>Vincular Lançamento Fixo
                     </label>
                     <select name="lancamento_fixo_id" id="edit-lancamento-fixo" class="form-select">
                         <option value="">-- Nenhum (atualização manual) --</option>
@@ -1031,6 +1051,7 @@
                         <option value="{{ fixo[0] }}">{{ fixo[1] }}</option>
                         {% endfor %}
                     </select>
+                    <small class="text-muted d-block mt-1">Opcional: vincula um lançamento fixo para atualização automática</small>
                 </div>
             </div>
             <div class="custom-modal-footer" style="flex-direction: column; gap: 0.5rem;">
@@ -1095,7 +1116,8 @@ document.getElementById('formNovaMeta').addEventListener('submit', function(e) {
         // Copia valores para campos esperados pelo backend
         const descricaoQuitar = document.getElementById('descricaoQuitar').value;
         const valorQuitar = document.getElementById('valorTotalQuitar').value;
-        const fixoQuitar = document.getElementById('selectFixoQuitar').value;
+        const selectFixoQuitar = document.getElementById('selectFixoQuitar');
+        const fixoQuitar = selectFixoQuitar ? selectFixoQuitar.value : '';
         
         // Cria campos hidden para enviar
         if (!document.getElementById('hiddenDescricao')) {
