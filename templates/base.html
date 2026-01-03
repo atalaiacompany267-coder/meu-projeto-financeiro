@@ -3529,6 +3529,350 @@
         });
     </script>
     
+    <!-- ========================================
+         AJAX GLOBAL - Elimina Recarregamentos
+         ======================================== -->
+    <script>
+    (function() {
+        'use strict';
+        
+        // ========================================
+        // TOAST NOTIFICATION SYSTEM
+        // ========================================
+        function showToast(message, type = 'info') {
+            // Remove toast existente
+            const existingToast = document.getElementById('ajax-toast');
+            if (existingToast) existingToast.remove();
+            
+            // Cores por tipo
+            const colors = {
+                success: { bg: '#10b981', icon: 'fa-check-circle' },
+                error: { bg: '#ef4444', icon: 'fa-times-circle' },
+                warning: { bg: '#f59e0b', icon: 'fa-exclamation-triangle' },
+                info: { bg: '#3b82f6', icon: 'fa-info-circle' }
+            };
+            
+            const config = colors[type] || colors.info;
+            
+            // Cria o toast
+            const toast = document.createElement('div');
+            toast.id = 'ajax-toast';
+            toast.innerHTML = `<i class="fas ${config.icon} me-2"></i>${message}`;
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: ${config.bg};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                z-index: 99999;
+                font-size: 14px;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                animation: slideInRight 0.3s ease;
+                max-width: 350px;
+            `;
+            
+            // Adiciona animação CSS
+            if (!document.getElementById('ajax-toast-styles')) {
+                const style = document.createElement('style');
+                style.id = 'ajax-toast-styles';
+                style.textContent = `
+                    @keyframes slideInRight {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOutRight {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(toast);
+            
+            // Remove após 4 segundos
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+        
+        // ========================================
+        // AJAX REQUEST HANDLER
+        // ========================================
+        async function ajaxAction(url, options = {}) {
+            const { 
+                method = 'GET',
+                confirmMessage = null,
+                onSuccess = null,
+                onError = null
+            } = options;
+            
+            // Confirmação opcional
+            if (confirmMessage && !confirm(confirmMessage)) {
+                return false;
+            }
+            
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    if (data.message) {
+                        showToast(data.message, data.message_type || 'success');
+                    }
+                    if (onSuccess) onSuccess(data);
+                    return data;
+                } else {
+                    showToast(data.message || 'Erro ao processar ação.', 'error');
+                    if (onError) onError(data);
+                    return null;
+                }
+            } catch (error) {
+                console.error('AJAX Error:', error);
+                showToast('Erro de conexão. Tente novamente.', 'error');
+                if (onError) onError(error);
+                return null;
+            }
+        }
+        
+        // ========================================
+        // TOGGLE STATUS (Check/Uncheck)
+        // ========================================
+        function handleToggleStatus(element, event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const url = element.href || element.getAttribute('data-href');
+            const row = element.closest('tr') || element.closest('.mobile-transaction-card');
+            
+            // Feedback visual imediato
+            element.style.opacity = '0.5';
+            element.style.pointerEvents = 'none';
+            
+            ajaxAction(url, {
+                onSuccess: (data) => {
+                    element.style.opacity = '1';
+                    element.style.pointerEvents = 'auto';
+                    
+                    if (data.novo_status === 'Pago') {
+                        // Desktop
+                        element.classList.add('pago');
+                        if (row && row.tagName === 'TR') {
+                            row.classList.add('row-pago');
+                        }
+                        // Mobile
+                        if (row && row.classList.contains('mobile-transaction-card')) {
+                            row.classList.add('opacity-75');
+                            const statusSpan = row.querySelector('.transaction-meta span:last-child');
+                            if (statusSpan) {
+                                statusSpan.className = 'text-success';
+                                statusSpan.innerHTML = '<i class="fas fa-check-circle"></i> Pago';
+                            }
+                            const btn = row.querySelector('.transaction-actions a[href*="toggle_status"]');
+                            if (btn) {
+                                btn.classList.remove('btn-success');
+                                btn.classList.add('btn-secondary');
+                                btn.title = 'Marcar como pendente';
+                            }
+                        }
+                    } else {
+                        // Desktop
+                        element.classList.remove('pago');
+                        if (row && row.tagName === 'TR') {
+                            row.classList.remove('row-pago');
+                        }
+                        // Mobile
+                        if (row && row.classList.contains('mobile-transaction-card')) {
+                            row.classList.remove('opacity-75');
+                            const statusSpan = row.querySelector('.transaction-meta span:last-child');
+                            if (statusSpan) {
+                                statusSpan.className = 'text-warning';
+                                statusSpan.innerHTML = '<i class="fas fa-clock"></i> Pendente';
+                            }
+                            const btn = row.querySelector('.transaction-actions a[href*="toggle_status"]');
+                            if (btn) {
+                                btn.classList.remove('btn-secondary');
+                                btn.classList.add('btn-success');
+                                btn.title = 'Marcar como pago';
+                            }
+                        }
+                    }
+                },
+                onError: () => {
+                    element.style.opacity = '1';
+                    element.style.pointerEvents = 'auto';
+                }
+            });
+        }
+        
+        // ========================================
+        // PIN/UNPIN LANCAMENTO
+        // ========================================
+        function handlePinLancamento(element, event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const url = element.href || element.getAttribute('data-href');
+            
+            // Feedback visual imediato
+            element.style.opacity = '0.5';
+            
+            ajaxAction(url, {
+                onSuccess: (data) => {
+                    element.style.opacity = '1';
+                    
+                    if (data.fixado) {
+                        element.classList.add('fixado');
+                        showToast('Lançamento fixado!', 'success');
+                    } else {
+                        element.classList.remove('fixado');
+                        showToast('Lançamento desfixado.', 'info');
+                    }
+                },
+                onError: () => {
+                    element.style.opacity = '1';
+                }
+            });
+        }
+        
+        // ========================================
+        // DELETE ACTIONS
+        // ========================================
+        function handleDelete(element, event, itemType = 'item') {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const url = element.href || element.getAttribute('data-href');
+            const row = element.closest('tr') || element.closest('.mobile-transaction-card') || element.closest('.card');
+            
+            ajaxAction(url, {
+                confirmMessage: `Excluir este ${itemType}?`,
+                onSuccess: (data) => {
+                    // Animação de remoção
+                    if (row) {
+                        row.style.transition = 'all 0.3s ease';
+                        row.style.opacity = '0';
+                        row.style.transform = 'translateX(-20px)';
+                        setTimeout(() => row.remove(), 300);
+                    }
+                }
+            });
+        }
+        
+        // ========================================
+        // EVENT DELEGATION - Intercepta Cliques
+        // ========================================
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('a');
+            if (!target) return;
+            
+            const href = target.getAttribute('href') || '';
+            
+            // Toggle Status (checkbox de pago/pendente)
+            if (href.includes('/toggle_status/') || target.classList.contains('btn-status')) {
+                handleToggleStatus(target, e);
+                return;
+            }
+            
+            // Pin/Unpin Lançamento
+            if (href.includes('/pin_lancamento/') || target.classList.contains('btn-pin')) {
+                handlePinLancamento(target, e);
+                return;
+            }
+            
+            // Delete Lançamento
+            if (href.includes('/delete_lancamento/')) {
+                handleDelete(target, e, 'lançamento');
+                return;
+            }
+            
+            // Delete Fixo
+            if (href.includes('/delete_fixo/')) {
+                handleDelete(target, e, 'lançamento fixo');
+                return;
+            }
+            
+            // Delete Meta
+            if (href.includes('/delete_meta/')) {
+                handleDelete(target, e, 'meta');
+                return;
+            }
+        });
+        
+        // ========================================
+        // FORMS - Submissão via AJAX (opcional)
+        // ========================================
+        // Para formulários que desejam usar AJAX, adicione a classe 'ajax-form'
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (!form.classList.contains('ajax-form')) return;
+            
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const url = form.action;
+            const method = form.method.toUpperCase();
+            
+            // Desabilita botão de submit
+            const submitBtn = form.querySelector('[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processando...';
+            }
+            
+            fetch(url, {
+                method: method,
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast(data.message || 'Sucesso!', 'success');
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    }
+                } else {
+                    showToast(data.message || 'Erro ao processar.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Form AJAX Error:', error);
+                showToast('Erro de conexão.', 'error');
+            })
+            .finally(() => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = submitBtn.getAttribute('data-original-text') || 'Enviar';
+                }
+            });
+        });
+        
+        // Expõe funções globais para uso em outros scripts
+        window.ajaxAction = ajaxAction;
+        window.showToast = showToast;
+        
+        console.log('✅ AJAX Global System Loaded');
+    })();
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

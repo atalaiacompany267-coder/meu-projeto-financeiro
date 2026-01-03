@@ -891,7 +891,7 @@
                         </button>
                         <a href="{{ url_for('delete_meta', id=id) }}" 
                            class="btn btn-danger btn-sm"
-                           onclick="return confirm('Tem certeza que deseja excluir esta {{ 'dívida' if is_divida else 'meta' }}?')">
+                           title="Excluir {{ 'dívida' if is_divida else 'meta' }}">
                             <i class="fas fa-trash me-1"></i> Excluir
                         </a>
                     </div>

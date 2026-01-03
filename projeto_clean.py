@@ -2,7 +2,7 @@ import json
 import pandas as pd
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-from flask import Flask, request, redirect, url_for, flash, render_template, session, send_file
+from flask import Flask, request, redirect, url_for, flash, render_template, session, send_file, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 import calendar
 from io import BytesIO
@@ -707,9 +707,14 @@ def toggle_status(id):
     LÓGICA FINANCEIRA: Usa o VALOR REAL do lançamento para atualizar metas/dívidas.
     - Para dívidas: Subtrai do saldo devedor (não apenas +1 mês)
     - Para metas: Soma ao valor guardado
-    Suporta amortização (valor > parcela) e pagamento parcial (valor < parcela)."""
+    Suporta amortização (valor > parcela) e pagamento parcial (valor < parcela).
+    AJAX: Retorna JSON se requisição for via AJAX."""
     trans = Transaction.query.filter_by(id=id, user_id=current_user.id).first()
     filtro_retorno = request.args.get('filtro_mes')
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
+    message = ''
+    message_type = 'info'
     
     if trans:
         status_anterior = trans.status
@@ -774,23 +779,38 @@ def toggle_status(id):
                     if valor_lancamento > valor_parcela * 1.1:  # 10% de margem
                         # Amortização (pagou mais que a parcela)
                         extra = valor_lancamento - valor_parcela
-                        flash(f'💰 Amortização! R$ {valor_lancamento:.2f} abatido. Extra: R$ {extra:.2f}. Saldo: R$ {saldo_restante:.2f}', 'success')
+                        message = f'💰 Amortização! R$ {valor_lancamento:.2f} abatido. Extra: R$ {extra:.2f}. Saldo: R$ {saldo_restante:.2f}'
+                        message_type = 'success'
+                        if not is_ajax:
+                            flash(message, message_type)
                     elif valor_lancamento < valor_parcela * 0.9:  # 10% de margem
                         # Pagamento parcial
-                        flash(f'⚠️ Pagamento parcial: R$ {valor_lancamento:.2f} de R$ {valor_parcela:.2f}. Saldo: R$ {saldo_restante:.2f}', 'warning')
+                        message = f'⚠️ Pagamento parcial: R$ {valor_lancamento:.2f} de R$ {valor_parcela:.2f}. Saldo: R$ {saldo_restante:.2f}'
+                        message_type = 'warning'
+                        if not is_ajax:
+                            flash(message, message_type)
                     else:
                         # Parcela normal
-                        flash(f'✅ Parcela registrada! Pago: R$ {novo_valor_pago:.2f}. Saldo: R$ {saldo_restante:.2f}', 'info')
+                        message = f'✅ Parcela registrada! Pago: R$ {novo_valor_pago:.2f}. Saldo: R$ {saldo_restante:.2f}'
+                        message_type = 'info'
+                        if not is_ajax:
+                            flash(message, message_type)
                         
                 else:
                     # ===== META DE GUARDAR: Soma valor real =====
                     valor_a_somar = valor_lancamento
                     goal.valor_atual = float(goal.valor_atual or 0) + valor_a_somar
                     falta = max(0, float(goal.valor_alvo or 0) - goal.valor_atual)
-                    flash(f'💰 R$ {valor_a_somar:.2f} adicionado! Total: R$ {goal.valor_atual:.2f}. Faltam: R$ {falta:.2f}', 'success')
+                    message = f'💰 R$ {valor_a_somar:.2f} adicionado! Total: R$ {goal.valor_atual:.2f}. Faltam: R$ {falta:.2f}'
+                    message_type = 'success'
+                    if not is_ajax:
+                        flash(message, message_type)
                     
             except Exception as e:
-                flash(f'Erro ao atualizar meta: {e}', 'warning')
+                message = f'Erro ao atualizar meta: {e}'
+                message_type = 'warning'
+                if not is_ajax:
+                    flash(message, message_type)
         
         # Se desmarcou (voltou para Pendente), reverte a meta
         elif goal and novo_status == 'Pendente':
@@ -805,17 +825,36 @@ def toggle_status(id):
                         goal.meses_pagos = int(goal.valor_atual / valor_parcela)
                     
                     saldo = max(0, float(goal.valor_alvo or 0) - goal.valor_atual)
-                    flash(f'↩️ Pagamento revertido! R$ {valor_lancamento:.2f} removido. Saldo: R$ {saldo:.2f}', 'warning')
+                    message = f'↩️ Pagamento revertido! R$ {valor_lancamento:.2f} removido. Saldo: R$ {saldo:.2f}'
+                    message_type = 'warning'
+                    if not is_ajax:
+                        flash(message, message_type)
                 else:
                     # Meta de guardar: subtrai o valor
                     goal.valor_atual = max(0, float(goal.valor_atual or 0) - valor_lancamento)
-                    flash(f'↩️ R$ {valor_lancamento:.2f} removido da meta "{goal.descricao}".', 'warning')
+                    message = f'↩️ R$ {valor_lancamento:.2f} removido da meta "{goal.descricao}".'
+                    message_type = 'warning'
+                    if not is_ajax:
+                        flash(message, message_type)
             except Exception as e:
-                flash(f'Erro ao reverter meta: {e}', 'warning')
+                message = f'Erro ao reverter meta: {e}'
+                message_type = 'warning'
+                if not is_ajax:
+                    flash(message, message_type)
         
         db.session.commit()
         if not filtro_retorno:
             filtro_retorno = trans.ano_mes
+        
+        # Retorna JSON para requisições AJAX
+        if is_ajax:
+            return jsonify({
+                'status': 'success',
+                'novo_status': novo_status,
+                'message': message,
+                'message_type': message_type,
+                'id': id
+            })
     
     if not filtro_retorno: 
         filtro_retorno = datetime.now().strftime('%Y-%m')
@@ -952,15 +991,29 @@ def edit_lancamento_save():
 @app.route('/delete_lancamento/<int:lancamento_id>')
 @login_required
 def delete_lancamento(lancamento_id):
-    """Remove uma transação"""
+    """Remove uma transação. Suporta AJAX."""
     trans = Transaction.query.filter_by(id=lancamento_id, user_id=current_user.id).first()
     filtro_retorno = request.args.get('filtro_mes')
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     
     if trans:
         if not filtro_retorno:
             filtro_retorno = trans.ano_mes
         db.session.delete(trans)
         db.session.commit()
+        
+        if is_ajax:
+            return jsonify({
+                'status': 'success',
+                'message': 'Lançamento excluído com sucesso!',
+                'id': lancamento_id
+            })
+    else:
+        if is_ajax:
+            return jsonify({
+                'status': 'error',
+                'message': 'Lançamento não encontrado.'
+            }), 404
     
     if not filtro_retorno: 
         filtro_retorno = datetime.now().strftime('%Y-%m')
@@ -969,9 +1022,10 @@ def delete_lancamento(lancamento_id):
 @app.route('/pin_lancamento/<int:lancamento_id>')
 @login_required
 def pin_lancamento(lancamento_id):
-    """Fixa/desfixa uma transação como recorrente"""
+    """Fixa/desfixa uma transação como recorrente. Suporta AJAX."""
     trans = Transaction.query.filter_by(id=lancamento_id, user_id=current_user.id).first()
     filtro_retorno = request.args.get('filtro_mes')
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     
     if trans:
         # Alterna o status de fixado
@@ -989,6 +1043,7 @@ def pin_lancamento(lancamento_id):
                 db.session.delete(fixed)
         
         # Se está fixando, cria novo registro de despesa fixa
+        message = ''
         if new_fixed_status:
             new_fixed = FixedExpense(
                 user_id=current_user.id,
@@ -1000,9 +1055,27 @@ def pin_lancamento(lancamento_id):
                 classificacao=trans.classificacao
             )
             db.session.add(new_fixed)
-            flash('Lançamento fixado com sucesso!', 'success')
+            message = 'Lançamento fixado com sucesso!'
+            if not is_ajax:
+                flash(message, 'success')
+        else:
+            message = 'Lançamento desfixado.'
         
         db.session.commit()
+        
+        if is_ajax:
+            return jsonify({
+                'status': 'success',
+                'fixado': new_fixed_status,
+                'message': message,
+                'id': lancamento_id
+            })
+    else:
+        if is_ajax:
+            return jsonify({
+                'status': 'error',
+                'message': 'Lançamento não encontrado.'
+            }), 404
     
     if not filtro_retorno: 
         filtro_retorno = datetime.now().strftime('%Y-%m')
@@ -1053,11 +1126,26 @@ def add_fixo():
 @app.route('/delete_fixo/<int:id>')
 @login_required
 def delete_fixo(id):
-    """Remove despesa fixa"""
+    """Remove despesa fixa. Suporta AJAX."""
     fixed = FixedExpense.query.filter_by(id=id, user_id=current_user.id).first()
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
     if fixed:
         db.session.delete(fixed)
         db.session.commit()
+        if is_ajax:
+            return jsonify({
+                'status': 'success',
+                'message': 'Lançamento fixo excluído!',
+                'id': id
+            })
+    else:
+        if is_ajax:
+            return jsonify({
+                'status': 'error',
+                'message': 'Lançamento fixo não encontrado.'
+            }), 404
+    
     return redirect(url_for('lancamentos_fixos'))
 
 @app.route('/edit_fixo_form/<int:id>')
@@ -1222,11 +1310,27 @@ def add_meta():
 @app.route('/delete_meta/<int:id>')
 @login_required
 def delete_meta(id):
-    """Remove meta"""
+    """Remove meta. Suporta AJAX."""
     goal = Goal.query.filter_by(id=id, user_id=current_user.id).first()
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
     if goal:
+        nome = goal.descricao
         db.session.delete(goal)
         db.session.commit()
+        if is_ajax:
+            return jsonify({
+                'status': 'success',
+                'message': f'Meta "{nome}" excluída!',
+                'id': id
+            })
+    else:
+        if is_ajax:
+            return jsonify({
+                'status': 'error',
+                'message': 'Meta não encontrada.'
+            }), 404
+    
     return redirect(url_for('metas'))
 
 @app.route('/edit_meta/<int:id>', methods=['POST'])
