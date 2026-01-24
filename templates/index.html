@@ -648,12 +648,17 @@
                 
                 <!-- Macro Summary (50-30-20) -->
                 <div class="mt-4 pt-3" style="border-top: 1px solid var(--border-color);">
-                    <h6 class="mb-3">Regra 50-30-20</h6>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="mb-0">Regra <span id="regra-titulo">{{ meta_essencial }}-{{ meta_estilo }}-{{ meta_investimento }}</span></h6>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-muted" onclick="abrirModalMetas()" title="Editar metas">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    </div>
                     {% set tot = entrada if entrada > 0 else 1 %}
                     
                     <div class="mb-2">
                         <div class="d-flex justify-content-between small mb-1">
-                            <span>Essenciais (50%)</span>
+                            <span>Essenciais (<span class="meta-essencial-display">{{ meta_essencial }}</span>%)</span>
                             <span class="privacy-mask">{{ "%.0f"|format((macro_vals['ESSENCIAIS']/tot)*100) }}%</span>
                         </div>
                         <div class="progress" style="height: 8px;">
@@ -663,7 +668,7 @@
                     
                     <div class="mb-2">
                         <div class="d-flex justify-content-between small mb-1">
-                            <span>Estilo de Vida (30%)</span>
+                            <span>Estilo de Vida (<span class="meta-estilo-display">{{ meta_estilo }}</span>%)</span>
                             <span class="privacy-mask">{{ "%.0f"|format((macro_vals['ESTILO_VIDA']/tot)*100) }}%</span>
                         </div>
                         <div class="progress" style="height: 8px;">
@@ -673,7 +678,7 @@
                     
                     <div class="mb-2">
                         <div class="d-flex justify-content-between small mb-1">
-                            <span>Investimentos (20%)</span>
+                            <span>Investimentos (<span class="meta-investimento-display">{{ meta_investimento }}</span>%)</span>
                             <span class="privacy-mask">{{ "%.0f"|format((macro_vals['INVESTIMENTOS']/tot)*100) }}%</span>
                         </div>
                         <div class="progress" style="height: 8px;">
@@ -1149,4 +1154,559 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<!-- ============================================ -->
+<!-- CSS DO MODAL - CORES ADAPTÁVEIS AO TEMA -->
+<!-- ============================================ -->
+<style>
+/* =============================================
+   MODAL METAS - Z-INDEX MÁXIMO
+   ============================================= */
+#modalEditarMetas {
+    z-index: 99999 !important;
+    position: fixed !important;
+}
+
+#modalEditarMetas .modal-dialog {
+    z-index: 100000 !important;
+    pointer-events: auto !important;
+}
+
+#modalEditarMetas .modal-content {
+    z-index: 100001 !important;
+    pointer-events: auto !important;
+}
+
+/* Backdrop customizado */
+.modal-backdrop.show {
+    z-index: 99998 !important;
+}
+
+/* =============================================
+   TEMA CLARO (Light Mode) - CORES DO MODAL
+   ============================================= */
+#modalEditarMetas .modal-content {
+    background-color: #ffffff !important;
+    color: #212529 !important;
+    border: 1px solid #dee2e6 !important;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3) !important;
+    border-radius: 12px !important;
+}
+
+#modalEditarMetas .modal-header {
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    border-radius: 11px 11px 0 0 !important;
+}
+
+#modalEditarMetas .modal-title {
+    color: #212529 !important;
+    font-weight: 600 !important;
+}
+
+#modalEditarMetas .modal-body {
+    background-color: #ffffff !important;
+    color: #212529 !important;
+}
+
+#modalEditarMetas .modal-footer {
+    background-color: #f8f9fa !important;
+    border-top: 1px solid #dee2e6 !important;
+    border-radius: 0 0 11px 11px !important;
+}
+
+#modalEditarMetas .form-label {
+    color: #212529 !important;
+    font-weight: 500 !important;
+}
+
+#modalEditarMetas .form-control {
+    background-color: #ffffff !important;
+    color: #212529 !important;
+    border: 1px solid #ced4da !important;
+    pointer-events: auto !important;
+    cursor: text !important;
+}
+
+#modalEditarMetas .form-control:focus {
+    background-color: #ffffff !important;
+    color: #212529 !important;
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25) !important;
+    outline: none !important;
+}
+
+#modalEditarMetas .input-group-text {
+    background-color: #e9ecef !important;
+    color: #212529 !important;
+    border: 1px solid #ced4da !important;
+}
+
+#modalEditarMetas .alert-info {
+    background-color: #cff4fc !important;
+    color: #055160 !important;
+    border-color: #b6effb !important;
+}
+
+#modalEditarMetas .btn-close {
+    filter: none !important;
+    opacity: 0.7 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+#modalEditarMetas .btn-close:hover {
+    opacity: 1 !important;
+}
+
+/* =============================================
+   TEMA ESCURO (Dark Mode) - CORES DO MODAL
+   ============================================= */
+[data-theme="dark"] #modalEditarMetas .modal-content {
+    background-color: #1a1a1a !important;
+    color: #f8f9fa !important;
+    border: 1px solid #3d3d3d !important;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-theme="dark"] #modalEditarMetas .modal-header {
+    background-color: #0d0d0d !important;
+    border-bottom: 1px solid #3d3d3d !important;
+}
+
+[data-theme="dark"] #modalEditarMetas .modal-title {
+    color: #f8f9fa !important;
+}
+
+[data-theme="dark"] #modalEditarMetas .modal-body {
+    background-color: #1a1a1a !important;
+    color: #f8f9fa !important;
+}
+
+[data-theme="dark"] #modalEditarMetas .modal-footer {
+    background-color: #0d0d0d !important;
+    border-top: 1px solid #3d3d3d !important;
+}
+
+[data-theme="dark"] #modalEditarMetas .form-label {
+    color: #f8f9fa !important;
+}
+
+[data-theme="dark"] #modalEditarMetas .form-control {
+    background-color: #2d2d2d !important;
+    color: #f8f9fa !important;
+    border: 1px solid #4d4d4d !important;
+}
+
+[data-theme="dark"] #modalEditarMetas .form-control:focus {
+    background-color: #2d2d2d !important;
+    color: #f8f9fa !important;
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.35) !important;
+}
+
+[data-theme="dark"] #modalEditarMetas .input-group-text {
+    background-color: #3d3d3d !important;
+    color: #f8f9fa !important;
+    border: 1px solid #4d4d4d !important;
+}
+
+[data-theme="dark"] #modalEditarMetas .alert-info {
+    background-color: #1a3a4a !important;
+    color: #7dd3fc !important;
+    border-color: #2d4a5a !important;
+}
+
+[data-theme="dark"] #modalEditarMetas .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%) !important;
+}
+
+/* =============================================
+   BOTÕES DO MODAL - SEMPRE FUNCIONAIS
+   ============================================= */
+#modalEditarMetas .btn {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 100002 !important;
+}
+
+#modalEditarMetas .btn-secondary {
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+    color: #ffffff !important;
+}
+
+#modalEditarMetas .btn-secondary:hover {
+    background-color: #5c636a !important;
+    border-color: #565e64 !important;
+}
+
+#modalEditarMetas .btn-success {
+    background-color: #10b981 !important;
+    border-color: #10b981 !important;
+    color: #ffffff !important;
+}
+
+#modalEditarMetas .btn-success:hover:not(:disabled) {
+    background-color: #059669 !important;
+    border-color: #059669 !important;
+}
+
+#modalEditarMetas .btn-success:disabled {
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+    opacity: 0.65 !important;
+    cursor: not-allowed !important;
+}
+
+/* =============================================
+   GARANTIR INPUTS CLICÁVEIS
+   ============================================= */
+#modalEditarMetas input[type="number"] {
+    -webkit-appearance: none !important;
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+    pointer-events: auto !important;
+    cursor: text !important;
+    user-select: auto !important;
+    -webkit-user-select: auto !important;
+}
+
+#modalEditarMetas input[type="number"]::-webkit-inner-spin-button,
+#modalEditarMetas input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: inner-spin-button !important;
+    opacity: 1 !important;
+}
+
+/* Alerta de erro visual */
+#modalEditarMetas .alerta-erro-modal {
+    display: none;
+    background-color: #f8d7da !important;
+    color: #842029 !important;
+    border-color: #f5c2c7 !important;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    margin-top: 10px;
+    text-align: center;
+}
+
+[data-theme="dark"] #modalEditarMetas .alerta-erro-modal {
+    background-color: #4a1a1a !important;
+    color: #f8a5a5 !important;
+    border-color: #6a2a2a !important;
+}
+</style>
+
+<!-- ============================================ -->
+<!-- MODAL EDITAR METAS - FORA DE QUALQUER CARD -->
+<!-- ============================================ -->
+<div class="modal fade" id="modalEditarMetas" tabindex="-1" aria-labelledby="modalEditarMetasLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h6 class="modal-title" id="modalEditarMetasLabel">
+                    <i class="fas fa-sliders-h me-2"></i>Editar Metas
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info py-2 small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>A soma deve ser <strong>100%</strong>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label small mb-1" for="input-meta-essencial">
+                        <span class="text-danger">●</span> Essenciais
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <input type="number" class="form-control" id="input-meta-essencial" 
+                               value="{{ meta_essencial }}" min="0" max="100" step="1"
+                               autocomplete="off">
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label small mb-1" for="input-meta-estilo">
+                        <span class="text-warning">●</span> Estilo de Vida
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <input type="number" class="form-control" id="input-meta-estilo" 
+                               value="{{ meta_estilo }}" min="0" max="100" step="1"
+                               autocomplete="off">
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label small mb-1" for="input-meta-investimento">
+                        <span class="text-success">●</span> Investimentos
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <input type="number" class="form-control" id="input-meta-investimento" 
+                               value="{{ meta_investimento }}" min="0" max="100" step="1"
+                               autocomplete="off">
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <span id="soma-metas-display" class="badge bg-success fs-6">Total: 100%</span>
+                </div>
+                
+                <!-- Alerta de erro visual dentro do modal -->
+                <div id="alerta-erro-metas" class="alerta-erro-modal">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <span id="msg-erro-metas">A soma deve ser 100%</span>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" id="btn-cancelar-metas">
+                    <i class="fas fa-times me-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-success btn-sm" id="btn-salvar-metas">
+                    <i class="fas fa-save me-1"></i>Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- JAVASCRIPT DO MODAL - CORRIGIDO -->
+<!-- ============================================ -->
+<script>
+(function() {
+    'use strict';
+    
+    // Variável para instância do modal
+    let modalMetasInstance = null;
+    
+    // Função para abrir o modal
+    window.abrirModalMetas = function() {
+        console.log('Abrindo modal de metas...');
+        
+        const modalEl = document.getElementById('modalEditarMetas');
+        if (!modalEl) {
+            console.error('Modal #modalEditarMetas não encontrado!');
+            return;
+        }
+        
+        // Verifica se Bootstrap está carregado
+        if (typeof bootstrap === 'undefined' || !bootstrap.Modal) {
+            console.error('Bootstrap Modal não está disponível!');
+            alert('Erro: Bootstrap não carregado. Recarregue a página.');
+            return;
+        }
+        
+        // Cria ou obtém instância do modal
+        try {
+            if (!modalMetasInstance) {
+                modalMetasInstance = new bootstrap.Modal(modalEl, {
+                    backdrop: true,
+                    keyboard: true,
+                    focus: true
+                });
+            }
+            
+            // Limpa alerta de erro
+            esconderErroModal();
+            
+            // Valida soma antes de abrir
+            validarSomaMetas();
+            
+            // Mostra o modal
+            modalMetasInstance.show();
+            console.log('Modal aberto com sucesso!');
+            
+        } catch (error) {
+            console.error('Erro ao abrir modal:', error);
+            alert('Erro ao abrir modal: ' + error.message);
+        }
+    };
+    
+    // Função para fechar o modal
+    window.fecharModalMetas = function() {
+        if (modalMetasInstance) {
+            modalMetasInstance.hide();
+        }
+    };
+    
+    // Função para mostrar erro no modal
+    function mostrarErroModal(mensagem) {
+        const alertaEl = document.getElementById('alerta-erro-metas');
+        const msgEl = document.getElementById('msg-erro-metas');
+        if (alertaEl && msgEl) {
+            msgEl.textContent = mensagem;
+            alertaEl.style.display = 'block';
+        }
+    }
+    
+    // Função para esconder erro no modal
+    function esconderErroModal() {
+        const alertaEl = document.getElementById('alerta-erro-metas');
+        if (alertaEl) {
+            alertaEl.style.display = 'none';
+        }
+    }
+    
+    // Função para validar soma das metas
+    window.validarSomaMetas = function() {
+        const inputEssencial = document.getElementById('input-meta-essencial');
+        const inputEstilo = document.getElementById('input-meta-estilo');
+        const inputInvestimento = document.getElementById('input-meta-investimento');
+        const display = document.getElementById('soma-metas-display');
+        const btnSalvar = document.getElementById('btn-salvar-metas');
+        
+        if (!inputEssencial || !inputEstilo || !inputInvestimento) {
+            console.error('Inputs do modal não encontrados');
+            return false;
+        }
+        
+        const essencial = parseInt(inputEssencial.value) || 0;
+        const estilo = parseInt(inputEstilo.value) || 0;
+        const investimento = parseInt(inputInvestimento.value) || 0;
+        const soma = essencial + estilo + investimento;
+        
+        // Atualiza display
+        if (display) {
+            display.textContent = `Total: ${soma}%`;
+            
+            if (soma === 100) {
+                display.className = 'badge bg-success fs-6';
+                esconderErroModal();
+            } else {
+                display.className = 'badge bg-danger fs-6';
+                mostrarErroModal(`A soma está em ${soma}%. Deve ser exatamente 100%.`);
+            }
+        }
+        
+        // Habilita/desabilita botão salvar
+        if (btnSalvar) {
+            btnSalvar.disabled = (soma !== 100);
+        }
+        
+        return soma === 100;
+    };
+    
+    // Função para salvar metas
+    window.salvarMetas = function() {
+        console.log('Salvando metas...');
+        
+        const essencial = parseInt(document.getElementById('input-meta-essencial').value) || 0;
+        const estilo = parseInt(document.getElementById('input-meta-estilo').value) || 0;
+        const investimento = parseInt(document.getElementById('input-meta-investimento').value) || 0;
+        const soma = essencial + estilo + investimento;
+        
+        // Validação final
+        if (soma !== 100) {
+            mostrarErroModal(`A soma é ${soma}%. Ajuste para 100% antes de salvar.`);
+            return;
+        }
+        
+        // Referência ao botão
+        const btnSalvar = document.getElementById('btn-salvar-metas');
+        const originalText = btnSalvar ? btnSalvar.innerHTML : '';
+        
+        // Feedback visual
+        if (btnSalvar) {
+            btnSalvar.disabled = true;
+            btnSalvar.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Salvando...';
+        }
+        
+        // Enviar para o servidor
+        fetch('/update_metas', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                meta_essencial: essencial,
+                meta_estilo: estilo,
+                meta_investimento: investimento
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro na resposta do servidor: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                console.log('Metas salvas com sucesso!');
+                fecharModalMetas();
+                // Recarrega a página para mostrar novos valores
+                setTimeout(() => location.reload(), 300);
+            } else {
+                throw new Error(data.error || 'Erro desconhecido ao salvar');
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao salvar:', error);
+            mostrarErroModal('Erro: ' + error.message);
+            
+            if (btnSalvar) {
+                btnSalvar.disabled = false;
+                btnSalvar.innerHTML = originalText || '<i class="fas fa-save me-1"></i>Salvar';
+            }
+        });
+    };
+    
+    // Configura eventos quando DOM estiver pronto
+    function initModalMetas() {
+        console.log('Inicializando modal de metas...');
+        
+        // Listeners para inputs (validação em tempo real)
+        const inputIds = ['input-meta-essencial', 'input-meta-estilo', 'input-meta-investimento'];
+        inputIds.forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                // Remove listeners antigos para evitar duplicação
+                input.removeEventListener('input', validarSomaMetas);
+                input.removeEventListener('change', validarSomaMetas);
+                
+                // Adiciona novos listeners
+                input.addEventListener('input', validarSomaMetas);
+                input.addEventListener('change', validarSomaMetas);
+                
+                console.log(`Listener adicionado ao input: ${id}`);
+            } else {
+                console.warn(`Input não encontrado: ${id}`);
+            }
+        });
+        
+        // Listener para botão Salvar
+        const btnSalvar = document.getElementById('btn-salvar-metas');
+        if (btnSalvar) {
+            btnSalvar.removeEventListener('click', salvarMetas);
+            btnSalvar.addEventListener('click', salvarMetas);
+            console.log('Listener adicionado ao botão Salvar');
+        }
+        
+        // Listener para o modal (quando fecha, limpa estado)
+        const modalEl = document.getElementById('modalEditarMetas');
+        if (modalEl) {
+            modalEl.addEventListener('hidden.bs.modal', function() {
+                esconderErroModal();
+                console.log('Modal fechado');
+            });
+        }
+        
+        console.log('Modal de metas inicializado com sucesso!');
+    }
+    
+    // Inicializa quando DOM estiver pronto
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initModalMetas);
+    } else {
+        // DOM já está pronto
+        initModalMetas();
+    }
+    
+})();
+</script>
+
 {% endblock %}

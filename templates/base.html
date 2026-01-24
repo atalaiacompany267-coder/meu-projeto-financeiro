@@ -3333,16 +3333,19 @@
             // ========================================
             const html = document.documentElement;
             const themeBtn = document.getElementById('btn-theme');
-            const themeIcon = themeBtn.querySelector('i');
             const metaThemeColor = document.getElementById('theme-color-meta');
             
             // Load saved theme
             const savedTheme = localStorage.getItem('theme') || 'light';
             html.setAttribute('data-theme', savedTheme);
-            updateThemeIcon(savedTheme);
-            updateDropdownColors(savedTheme); // Aplica cores iniciais
             
-            themeBtn.addEventListener('click', function() {
+            // Proteção: só executa se o botão de tema existir
+            if (themeBtn) {
+                const themeIcon = themeBtn.querySelector('i');
+                updateThemeIcon(savedTheme);
+                updateDropdownColors(savedTheme); // Aplica cores iniciais
+                
+                themeBtn.addEventListener('click', function() {
                 const currentTheme = html.getAttribute('data-theme');
                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
                 
@@ -3371,20 +3374,30 @@
             });
             
             function updateThemeIcon(theme) {
-                if (theme === 'dark') {
-                    themeIcon.className = 'fas fa-sun';
-                } else {
-                    themeIcon.className = 'fas fa-moon';
+                const themeIcon = themeBtn ? themeBtn.querySelector('i') : null;
+                if (themeIcon) {
+                    if (theme === 'dark') {
+                        themeIcon.className = 'fas fa-sun';
+                    } else {
+                        themeIcon.className = 'fas fa-moon';
+                    }
                 }
             }
             
+            } // Fim do if (themeBtn)
+            
             // Função para atualizar contraste dos gráficos ao mudar tema
             function updateChartTheme(theme) {
+                // Verifica se Chart.js está disponível
+                if (typeof Chart === 'undefined') {
+                    console.log('Chart.js não disponível');
+                    return;
+                }
+                
                 const textColor = theme === 'dark' ? '#f8f9fa' : '#2d3748';
                 Chart.defaults.color = textColor;
                 
                 // Recarregar página para aplicar mudanças nos gráficos
-                // (alternativa: destruir e recriar gráficos dinamicamente)
                 console.log('🎨 Tema alterado para:', theme);
                 console.log('🔄 Recarregando para atualizar gráficos...');
                 setTimeout(() => location.reload(), 100);
@@ -3394,21 +3407,25 @@
             // PRIVACY TOGGLE
             // ========================================
             const privacyBtn = document.getElementById('btn-privacy');
-            const privacyIcon = privacyBtn.querySelector('i');
             
-            // Load saved privacy state
-            const savedPrivacy = localStorage.getItem('privacyMode') === 'true';
-            if (savedPrivacy) {
-                document.body.classList.add('privacy-mode');
-                privacyIcon.className = 'fas fa-eye-slash';
-            }
-            
-            privacyBtn.addEventListener('click', function() {
-                document.body.classList.toggle('privacy-mode');
-                const isPrivate = document.body.classList.contains('privacy-mode');
-                localStorage.setItem('privacyMode', isPrivate);
-                privacyIcon.className = isPrivate ? 'fas fa-eye-slash' : 'fas fa-eye';
-            });
+            // Proteção: só executa se o botão de privacidade existir
+            if (privacyBtn) {
+                const privacyIcon = privacyBtn.querySelector('i');
+                
+                // Load saved privacy state
+                const savedPrivacy = localStorage.getItem('privacyMode') === 'true';
+                if (savedPrivacy) {
+                    document.body.classList.add('privacy-mode');
+                    if (privacyIcon) privacyIcon.className = 'fas fa-eye-slash';
+                }
+                
+                privacyBtn.addEventListener('click', function() {
+                    document.body.classList.toggle('privacy-mode');
+                    const isPrivate = document.body.classList.contains('privacy-mode');
+                    localStorage.setItem('privacyMode', isPrivate);
+                    if (privacyIcon) privacyIcon.className = isPrivate ? 'fas fa-eye-slash' : 'fas fa-eye';
+                });
+            } // Fim do if (privacyBtn)
             
             // ========================================
             // DATE MASK

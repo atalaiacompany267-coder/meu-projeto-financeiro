@@ -15,15 +15,21 @@ app.secret_key = 'chave_financeira_v20_final_sync_fix_chart_v4_backup_completo'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=365)
 
 # ============================================
-# CONFIGURAÇÃO DO BANCO DE DADOS (PostgreSQL Neon)
+# CONFIGURAÇÃO DO BANCO DE DADOS (PostgreSQL Neon ou SQLite local)
 # ============================================
 import os
-DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://neondb_owner:npg_NA4wBru6LHOZ@ep-jolly-lab-ahhyx7m1-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require')
+from sqlalchemy.pool import NullPool
+
+# Usa psycopg3 (driver mais moderno, compatível com Python 3.14)
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql+psycopg://neondb_owner:npg_NA4wBru6LHOZ@ep-jolly-lab-ahhyx7m1-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require')
+
+# Para usar SQLite local (descomente a linha abaixo se Neon estiver indisponível):
+# DATABASE_URL = 'sqlite:///controle_financeiro.db'
+
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'pool_recycle': 300,
-    'pool_pre_ping': True,
+    'poolclass': NullPool,  # Desabilita pooling (resolve problemas com Python 3.14)
 }
 
 db = SQLAlchemy(app)
@@ -46,6 +52,24 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_month_viewed = db.Column(db.String(7), nullable=True)  # Formato: YYYY-MM
     last_year_viewed = db.Column(db.Integer, nullable=True)  # Formato: YYYY
+    
+    # Metas personalizadas da regra 50-30-20
+    meta_essencial = db.Column(db.Integer, default=50, nullable=True)
+    meta_estilo = db.Column(db.Integer, default=30, nullable=True)
+    meta_investimento = db.Column(db.Integer, default=20, nullable=True)
+    
+    # Propriedades para garantir valores padrão mesmo com NULL no banco
+    @property
+    def meta_essencial_valor(self):
+        return self.meta_essencial if self.meta_essencial is not None else 50
+    
+    @property
+    def meta_estilo_valor(self):
+        return self.meta_estilo if self.meta_estilo is not None else 30
+    
+    @property
+    def meta_investimento_valor(self):
+        return self.meta_investimento if self.meta_investimento is not None else 20
     
     # Relacionamentos
     transactions = db.relationship('Transaction', backref='user', lazy='dynamic', cascade='all, delete-orphan')
@@ -697,7 +721,10 @@ def dashboard():
         avg_ent=avg_ent,
         avg_sai=avg_sai,
         macro_tooltips=tooltips,
-        metas_dropdown=metas_dropdown
+        metas_dropdown=metas_dropdown,
+        meta_essencial=current_user.meta_essencial or 50,
+        meta_estilo=current_user.meta_estilo or 30,
+        meta_investimento=current_user.meta_investimento or 20
     )
 
 @app.route('/toggle_status/<int:id>')
@@ -1464,6 +1491,43 @@ def add_valor_meta():
     
     return redirect(url_for('metas'))
 
+# ============================================
+# ATUALIZAR METAS PERSONALIZADAS (AJAX)
+# ============================================
+@app.route('/update_metas', methods=['POST'])
+@login_required
+def update_metas():
+    """Atualiza as metas personalizadas via AJAX"""
+    try:
+        data = request.get_json()
+        
+        meta_essencial = int(data.get('meta_essencial', 50))
+        meta_estilo = int(data.get('meta_estilo', 30))
+        meta_investimento = int(data.get('meta_investimento', 20))
+        
+        # Validação: soma deve ser exatamente 100
+        soma = meta_essencial + meta_estilo + meta_investimento
+        if soma != 100:
+            return jsonify({'success': False, 'error': f'A soma deve ser 100%, você informou {soma}%'})
+        
+        # Validação: valores devem ser positivos
+        if meta_essencial < 0 or meta_estilo < 0 or meta_investimento < 0:
+            return jsonify({'success': False, 'error': 'Os valores devem ser positivos'})
+        
+        # Atualiza as metas do usuário
+        current_user.meta_essencial = meta_essencial
+        current_user.meta_estilo = meta_estilo
+        current_user.meta_investimento = meta_investimento
+        db.session.commit()
+        
+        return jsonify({'success': True})
+        
+    except ValueError:
+        return jsonify({'success': False, 'error': 'Valores inválidos'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
 @app.route('/relatorio_anual')
 @login_required
 def relatorio_anual():
@@ -2029,6 +2093,10 @@ def migrate_add_columns():
             # Colunas para Transaction (vínculo com metas)
             ("transactions", "meta_id", "INTEGER"),
             ("transactions", "tipo_contribuicao", "VARCHAR(20)"),
+            # Colunas para User (metas financeiras personalizadas 50-30-20)
+            ("users", "meta_essencial", "INTEGER DEFAULT 50"),
+            ("users", "meta_estilo", "INTEGER DEFAULT 30"),
+            ("users", "meta_investimento", "INTEGER DEFAULT 20"),
         ]
         
         for table, column, col_type in migrations:
@@ -2045,6 +2113,17 @@ def migrate_add_columns():
                 else:
                     # Pode ser outro erro, ignoramos para SQLite
                     pass
+        
+        # Atualiza valores NULL para os defaults nas colunas de metas (para usuários existentes)
+        try:
+            db.session.execute(text("UPDATE users SET meta_essencial = 50 WHERE meta_essencial IS NULL"))
+            db.session.execute(text("UPDATE users SET meta_estilo = 30 WHERE meta_estilo IS NULL"))
+            db.session.execute(text("UPDATE users SET meta_investimento = 20 WHERE meta_investimento IS NULL"))
+            db.session.commit()
+        except:
+            db.session.rollback()
+            pass
+            
     except Exception as e:
         print(f"  ⚠️  Migração automática não disponível: {e}")
 
