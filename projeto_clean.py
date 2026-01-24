@@ -20,8 +20,10 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=365)
 import os
 from sqlalchemy.pool import NullPool
 
-# Usa psycopg3 (driver mais moderno, compatível com Python 3.14)
-DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql+psycopg://neondb_owner:npg_NA4wBru6LHOZ@ep-jolly-lab-ahhyx7m1-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require')
+# Usa psycopg2 (driver estável, compatível com Python 3.11 no Render)
+# Localmente com Python 3.14, use: postgresql+psycopg:// (psycopg3)
+# No Render com Python 3.11, use: postgresql:// (psycopg2-binary)
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://neondb_owner:npg_NA4wBru6LHOZ@ep-jolly-lab-ahhyx7m1-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require')
 
 # Para usar SQLite local (descomente a linha abaixo se Neon estiver indisponível):
 # DATABASE_URL = 'sqlite:///controle_financeiro.db'
