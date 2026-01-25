@@ -220,15 +220,18 @@
         
         /* GRUPO DA ESQUERDA: Botão de Menu + Título */
         .top-navbar > .d-flex {
-            flex: 0 0 auto !important;
-            max-width: 50% !important; /* Limitar largura do título no mobile */
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+            max-width: none !important;
         }
         
         .page-title {
-            font-size: clamp(1rem, 4vw, 1.5rem) !important;
-            white-space: nowrap !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
+            font-size: clamp(0.95rem, 4vw, 1.5rem) !important;
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            line-height: 1.2 !important;
+            word-wrap: break-word !important;
         }
         
         /* GRUPO DA DIREITA: Ícones com gap de 4px */
@@ -366,8 +369,27 @@
                 flex-wrap: nowrap !important;
                 align-items: center !important;
                 justify-content: space-between !important;
-                padding: 0.75rem 1rem !important;
+                padding: 0.75rem 0.5rem !important;
                 overflow: visible !important;
+                gap: 8px !important;
+            }
+            
+            /* Grupo do título - flex para ocupar espaço disponível */
+            .top-navbar > .d-flex:first-child {
+                flex: 1 1 auto !important;
+                min-width: 0 !important;
+                max-width: calc(100% - 150px) !important;
+            }
+            
+            /* Título responsivo - permite quebra de linha */
+            .page-title {
+                font-size: 0.95rem !important;
+                white-space: normal !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
+                line-height: 1.15 !important;
+                word-wrap: break-word !important;
+                max-width: 100% !important;
             }
             
             .btn-theme-toggle,
@@ -399,15 +421,44 @@
                 align-items: center !important;
                 gap: 2px !important;
                 margin-left: auto !important;
-                margin-right: 8px !important;
+                margin-right: 0 !important;
                 flex-shrink: 0 !important;
                 justify-content: flex-end !important;
                 overflow: visible !important;
             }
+        }
+        
+        /* MOBILE PEQUENO: Abaixo de 400px */
+        @media (max-width: 399.98px) {
+            .top-navbar {
+                padding: 0.5rem 0.35rem !important;
+                gap: 4px !important;
+            }
             
-            /* Título Dashboard reduzido no mobile */
+            .top-navbar > .d-flex:first-child {
+                max-width: calc(100% - 130px) !important;
+            }
+            
             .page-title {
-                font-size: 16px !important;
+                font-size: 0.85rem !important;
+                line-height: 1.1 !important;
+            }
+            
+            .btn-theme-toggle,
+            .btn-privacy-toggle,
+            .btn-actions-toggle,
+            .mobile-menu-toggle {
+                width: 30px !important;
+                height: 30px !important;
+                min-width: 30px !important;
+                min-height: 30px !important;
+                max-width: 30px !important;
+                max-height: 30px !important;
+                font-size: 0.8rem !important;
+            }
+            
+            .navbar-actions {
+                gap: 1px !important;
             }
         }
     </style>
