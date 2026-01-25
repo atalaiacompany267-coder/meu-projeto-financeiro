@@ -16,6 +16,81 @@
 {% block content %}
 <style>
     /* ========================================
+       ESTILIZAÇÃO DE ENTRADAS E SAÍDAS
+       Padrão idêntico à página de Lançamentos Fixos
+       ======================================== */
+    
+    /* Coluna Tipo */
+    .col-tipo {
+        width: 100px !important;
+        white-space: nowrap !important;
+    }
+    
+    /* Badge de Tipo - Estilo Pílula (idêntico ao Fixos) */
+    .badge-entrada {
+        background: rgba(25, 135, 84, 0.2) !important;
+        color: #2ecc71 !important;
+        padding: 0.4em 0.8em !important;
+        border-radius: 20px !important;
+        font-weight: 600 !important;
+        font-size: 0.75rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+    }
+    
+    .badge-saida {
+        background: rgba(220, 53, 69, 0.2) !important;
+        color: #ff4d4d !important;
+        padding: 0.4em 0.8em !important;
+        border-radius: 20px !important;
+        font-weight: 600 !important;
+        font-size: 0.75rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+    }
+    
+    /* Valores coloridos - Entrada (Verde) - FORÇADO */
+    .valor-entrada,
+    .valor-entrada .valor-texto,
+    td.valor-entrada,
+    td.valor-entrada span {
+        color: #2ecc71 !important;
+    }
+    
+    /* Valores coloridos - Saída (Vermelho) - FORÇADO */
+    .valor-saida,
+    .valor-saida .valor-texto,
+    td.valor-saida,
+    td.valor-saida span {
+        color: #e74c3c !important;
+    }
+    
+    /* Modo Escuro - Melhor contraste */
+    [data-theme="dark"] .badge-entrada {
+        background: rgba(46, 204, 113, 0.2) !important;
+        color: #5dfc9e !important;
+    }
+    
+    [data-theme="dark"] .badge-saida {
+        background: rgba(255, 77, 77, 0.2) !important;
+        color: #ff6b6b !important;
+    }
+    
+    [data-theme="dark"] .valor-entrada,
+    [data-theme="dark"] .valor-entrada .valor-texto,
+    [data-theme="dark"] td.valor-entrada,
+    [data-theme="dark"] td.valor-entrada span {
+        color: #2ecc71 !important;
+    }
+    
+    [data-theme="dark"] .valor-saida,
+    [data-theme="dark"] .valor-saida .valor-texto,
+    [data-theme="dark"] td.valor-saida,
+    [data-theme="dark"] td.valor-saida span {
+        color: #e74c3c !important;
+    }
+    
+    /* ========================================
        FORMULÁRIO DASHBOARD - CONFORTÁVEL E LEGÍVEL
        Fontes maiores, campos espaçados, botão full-width
        ======================================== */
@@ -787,7 +862,9 @@
                         <th style="width: 50px;" class="text-center">
                             <i class="fas fa-check-circle"></i>
                         </th>
+                        <th class="text-center" style="width: 100px;">Tipo</th>
                         <th>Lançamento</th>
+                        <th>Classificação</th>
                         <th>Data</th>
                         <th class="text-end col-valor">Valor</th>
                         <th class="text-center col-acoes">Ações</th>
@@ -804,12 +881,26 @@
                                 <i class="fas fa-check"></i>
                             </a>
                         </td>
+                        <td class="text-center">
+                            <span class="badge badge-{{ 'entrada' if l.Tipo == 'ENTRADA' else 'saida' }}">
+                                {{ 'ENTRADA' if l.Tipo == 'ENTRADA' else 'SAÍDA' }}
+                            </span>
+                        </td>
                         <td class="col-categoria">
                             <span class="categoria-texto">{{ l.Categoria }}</span>
                         </td>
+                        <td class="col-classificacao">
+                            {% if l.Classificação == 'Essenciais' %}
+                            <span class="badge" style="background: rgba(108, 117, 125, 0.2); color: #6c757d;">Essenciais</span>
+                            {% elif l.Classificação == 'Estilo de Vida' %}
+                            <span class="badge" style="background: rgba(255, 193, 7, 0.2); color: #ffc107;">Estilo de Vida</span>
+                            {% else %}
+                            <span class="badge" style="background: rgba(13, 110, 253, 0.2); color: #0d6efd;">Investimentos</span>
+                            {% endif %}
+                        </td>
                         <td class="col-data">{{ l.Data }}</td>
-                        <td class="text-end col-valor privacy-mask fw-bold text-{{ 'success' if l.Valor > 0 else 'danger' }}">
-                            <span class="valor-texto">R$&nbsp;{{ "%.2f"|format(l.Valor|abs) }}</span>
+                        <td class="text-end col-valor privacy-mask fw-bold" style="color: {% if l.Tipo == 'ENTRADA' %}#2ecc71{% else %}#e74c3c{% endif %} !important;">
+                            <span class="valor-texto" style="color: {% if l.Tipo == 'ENTRADA' %}#2ecc71{% else %}#e74c3c{% endif %} !important;">R$&nbsp;{{ "%.2f"|format(l.Valor|abs) }}</span>
                         </td>
                         <td class="text-center col-acoes">
                             <div class="btn-group-acoes">
@@ -832,7 +923,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-4">
+                        <td colspan="7" class="text-center text-muted py-4">
                             <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
                             Nenhum lançamento neste mês
                         </td>
@@ -851,13 +942,23 @@
                 <div class="transaction-header">
                     <div class="transaction-desc">
                         {{ l.Categoria }}
+                        <span class="badge badge-{{ 'entrada' if l.Tipo == 'ENTRADA' else 'saida' }} ms-2">{{ 'ENTRADA' if l.Tipo == 'ENTRADA' else 'SAÍDA' }}</span>
                     </div>
-                    <div class="transaction-valor privacy-mask text-{{ 'success' if l.Valor > 0 else 'danger' }}">
-                        {{ '+' if l.Valor > 0 else '-' }}R$ {{ "%.2f"|format(l.Valor|abs) }}
+                    <div class="transaction-valor privacy-mask fw-bold" style="color: {% if l.Tipo == 'ENTRADA' %}#2ecc71{% else %}#e74c3c{% endif %} !important;">
+                        R$ {{ "%.2f"|format(l.Valor|abs) }}
                     </div>
                 </div>
                 <div class="transaction-meta">
                     <span><i class="fas fa-calendar"></i> {{ l.Data }}</span>
+                    <span>
+                        {% if l.Classificação == 'Essenciais' %}
+                        <i class="fas fa-home" style="color: #6c757d;"></i> Essenciais
+                        {% elif l.Classificação == 'Estilo de Vida' %}
+                        <i class="fas fa-heart" style="color: #ffc107;"></i> Estilo de Vida
+                        {% else %}
+                        <i class="fas fa-chart-line" style="color: #0d6efd;"></i> Investimentos
+                        {% endif %}
+                    </span>
                     {% if l.Status == 'Pago' %}
                     <span class="text-success"><i class="fas fa-check-circle"></i> Pago</span>
                     {% else %}

@@ -259,41 +259,89 @@
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('annualChart');
     if (ctx) {
+        // Plugin para alinhar pontos das linhas com o centro de cada barra
+        const alignLinePointsPlugin = {
+            id: 'alignLinePoints',
+            beforeDatasetsDraw(chart) {
+                const datasets = chart.data.datasets;
+                const meta0 = chart.getDatasetMeta(0); // Barras Entradas
+                const meta1 = chart.getDatasetMeta(1); // Barras Saídas
+                const meta2 = chart.getDatasetMeta(2); // Barras Saldo
+                
+                // Linha Entradas (dataset 3) - alinhar com barra 0
+                if (datasets[3] && meta0.data) {
+                    const lineMeta = chart.getDatasetMeta(3);
+                    lineMeta.data.forEach((point, i) => {
+                        if (meta0.data[i]) {
+                            point.x = meta0.data[i].x;
+                        }
+                    });
+                }
+                
+                // Linha Saídas (dataset 4) - alinhar com barra 1
+                if (datasets[4] && meta1.data) {
+                    const lineMeta = chart.getDatasetMeta(4);
+                    lineMeta.data.forEach((point, i) => {
+                        if (meta1.data[i]) {
+                            point.x = meta1.data[i].x;
+                        }
+                    });
+                }
+                
+                // Linha Saldo (dataset 5) - alinhar com barra 2
+                if (datasets[5] && meta2.data) {
+                    const lineMeta = chart.getDatasetMeta(5);
+                    lineMeta.data.forEach((point, i) => {
+                        if (meta2.data[i]) {
+                            point.x = meta2.data[i].x;
+                        }
+                    });
+                }
+            }
+        };
+        
         new Chart(ctx.getContext('2d'), {
             type: 'bar',
+            plugins: [alignLinePointsPlugin],
             data: {
                 labels: {{ chart_labels|safe }},
                 datasets: [
-                    // Barras (fundo)
+                    // Barras agrupadas
                     {
                         label: 'Entradas',
                         data: {{ chart_entrada|safe }},
                         backgroundColor: 'rgba(25, 135, 84, 0.6)',
                         borderRadius: 4,
-                        order: 2
+                        order: 2,
+                        categoryPercentage: 0.75,
+                        barPercentage: 0.85
                     },
                     {
                         label: 'Saídas',
                         data: {{ chart_saida|safe }},
                         backgroundColor: 'rgba(220, 53, 69, 0.6)',
                         borderRadius: 4,
-                        order: 2
+                        order: 2,
+                        categoryPercentage: 0.75,
+                        barPercentage: 0.85
                     },
                     {
                         label: 'Saldo',
                         data: {{ chart_saldo|safe }},
                         backgroundColor: 'rgba(13, 110, 253, 0.6)',
                         borderRadius: 4,
-                        order: 2
+                        order: 2,
+                        categoryPercentage: 0.75,
+                        barPercentage: 0.85
                     },
-                    // Linhas de Evolução (frente) - ocultas da legenda e tooltip
+                    // Linhas de tendência - alinhadas com suas barras
                     {
-                        label: '_hidden_linha_entradas',
+                        label: '_linha_entradas',
                         data: {{ chart_entrada|safe }},
                         type: 'line',
                         borderColor: '#198754',
-                        backgroundColor: '#198754',
-                        borderWidth: 3,
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
                         pointRadius: 5,
                         pointHoverRadius: 7,
                         pointBackgroundColor: '#198754',
@@ -304,12 +352,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         order: 1
                     },
                     {
-                        label: '_hidden_linha_saidas',
+                        label: '_linha_saidas',
                         data: {{ chart_saida|safe }},
                         type: 'line',
                         borderColor: '#dc3545',
-                        backgroundColor: '#dc3545',
-                        borderWidth: 3,
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
                         pointRadius: 5,
                         pointHoverRadius: 7,
                         pointBackgroundColor: '#dc3545',
@@ -320,12 +368,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         order: 1
                     },
                     {
-                        label: '_hidden_linha_saldo',
+                        label: '_linha_saldo',
                         data: {{ chart_saldo|safe }},
                         type: 'line',
                         borderColor: '#0d6efd',
-                        backgroundColor: '#0d6efd',
-                        borderWidth: 3,
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
                         pointRadius: 5,
                         pointHoverRadius: 7,
                         pointBackgroundColor: '#0d6efd',
@@ -353,20 +401,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             font: {
                                 size: 11
                             },
-                            // Filtra itens ocultos da legenda
                             filter: function(item) {
-                                return !item.text.startsWith('_hidden_');
+                                return !item.text.startsWith('_');
                             }
                         },
                         onClick: function(e, legendItem, legend) {
                             const index = legendItem.datasetIndex;
                             const ci = legend.chart;
                             
-                            // Toggle da barra
                             const metaBar = ci.getDatasetMeta(index);
                             metaBar.hidden = metaBar.hidden === null ? !ci.data.datasets[index].hidden : null;
                             
-                            // Toggle da linha correspondente (índice + 3)
                             const lineIndex = index + 3;
                             if (lineIndex < ci.data.datasets.length) {
                                 const metaLine = ci.getDatasetMeta(lineIndex);
@@ -379,20 +424,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                // Não mostra tooltip para linhas ocultas
-                                if (context.dataset.label.startsWith('_hidden_')) {
+                                if (context.dataset.label.startsWith('_')) {
                                     return null;
                                 }
                                 return context.dataset.label + ': R$ ' + context.raw.toFixed(2);
                             }
                         },
                         filter: function(tooltipItem) {
-                            // Filtra tooltips das linhas ocultas
-                            return !tooltipItem.dataset.label.startsWith('_hidden_');
+                            return !tooltipItem.dataset.label.startsWith('_');
                         }
                     }
                 },
                 scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
                     y: {
                         beginAtZero: true,
                         ticks: {

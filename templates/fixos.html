@@ -8,6 +8,44 @@
 {% block content %}
 <style>
     /* ========================================
+       BADGES DE TIPO - ENTRADA E SAÍDA
+       Estilo idêntico ao Dashboard
+       ======================================== */
+    
+    .badge-entrada {
+        background: rgba(25, 135, 84, 0.2) !important;
+        color: #2ecc71 !important;
+        padding: 0.4em 0.8em !important;
+        border-radius: 20px !important;
+        font-weight: 600 !important;
+        font-size: 0.75rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+    }
+    
+    .badge-saida {
+        background: rgba(220, 53, 69, 0.2) !important;
+        color: #ff4d4d !important;
+        padding: 0.4em 0.8em !important;
+        border-radius: 20px !important;
+        font-weight: 600 !important;
+        font-size: 0.75rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+    }
+    
+    /* Modo Escuro */
+    [data-theme="dark"] .badge-entrada {
+        background: rgba(46, 204, 113, 0.2) !important;
+        color: #5dfc9e !important;
+    }
+    
+    [data-theme="dark"] .badge-saida {
+        background: rgba(255, 77, 77, 0.2) !important;
+        color: #ff6b6b !important;
+    }
+    
+    /* ========================================
        BOTÕES DE AÇÃO - LANÇAMENTOS FIXOS
        Layout horizontal igual ao Dashboard
        ======================================== */
@@ -293,14 +331,14 @@
                         </td>
                         <td class="text-center">
                             <span class="badge badge-{{ 'entrada' if e.tipo == 'ENTRADA' else 'saida' }}">
-                                {{ e.tipo }}
+                                {{ 'ENTRADA' if e.tipo == 'ENTRADA' else 'SAÍDA' }}
                             </span>
                         </td>
                         <td>{{ e.categoria }}</td>
                         <td>
                             <small class="text-muted">{{ e.classificacao }}</small>
                         </td>
-                        <td class="text-end privacy-mask fw-bold text-{{ 'success' if e.tipo == 'ENTRADA' else 'danger' }}">
+                        <td class="text-end privacy-mask fw-bold" style="color: {% if e.tipo == 'ENTRADA' %}#2ecc71{% else %}#e74c3c{% endif %} !important;">
                             R$ {{ "%.2f"|format(e.valor) }}
                         </td>
                         <td class="text-center col-fixos-acoes">
@@ -337,14 +375,14 @@
                     <div class="transaction-desc">
                         {{ e.categoria }}
                     </div>
-                    <div class="transaction-valor privacy-mask text-{{ 'success' if e.tipo == 'ENTRADA' else 'danger' }}">
+                    <div class="transaction-valor privacy-mask fw-bold" style="color: {% if e.tipo == 'ENTRADA' %}#2ecc71{% else %}#e74c3c{% endif %} !important;">
                         R$ {{ "%.2f"|format(e.valor) }}
                     </div>
                 </div>
                 <div class="transaction-meta">
                     <span><i class="fas fa-calendar-day"></i> Dia {{ e.dia_fixo }}</span>
                     <span><i class="fas fa-tag"></i> {{ e.categoria }}</span>
-                    <span class="badge badge-{{ 'entrada' if e.tipo == 'ENTRADA' else 'saida' }}">{{ e.tipo }}</span>
+                    <span class="badge badge-{{ 'entrada' if e.tipo == 'ENTRADA' else 'saida' }}">{{ 'ENTRADA' if e.tipo == 'ENTRADA' else 'SAÍDA' }}</span>
                 </div>
                 <div class="transaction-actions">
                     <a href="{{ url_for('edit_fixo_form', id=id) }}" 
