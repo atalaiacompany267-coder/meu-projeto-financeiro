@@ -210,41 +210,55 @@
            ======================================== */
         .top-navbar {
             display: flex !important;
-            justify-content: flex-start !important;
+            justify-content: space-between !important;
             align-items: center !important;
             flex-wrap: nowrap !important;
             background: var(--bg-card) !important;
             isolation: isolate;
-            overflow: visible !important; /* Permitir dropdown aparecer */
+            overflow: visible !important;
+            width: 100% !important;
+            padding: 0.75rem 1rem !important;
+            gap: 8px !important;
         }
         
         /* GRUPO DA ESQUERDA: Botão de Menu + Título */
-        .top-navbar > .d-flex {
+        .title-container {
             flex: 1 1 auto !important;
             min-width: 0 !important;
-            max-width: none !important;
+            overflow: hidden !important;
+        }
+        
+        .title-wrapper {
+            min-width: 0 !important;
+            overflow: hidden !important;
         }
         
         .page-title {
-            font-size: clamp(0.95rem, 4vw, 1.5rem) !important;
-            white-space: normal !important;
-            overflow: visible !important;
-            text-overflow: clip !important;
+            font-size: 1.25rem !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
             line-height: 1.2 !important;
-            word-wrap: break-word !important;
+            margin: 0 !important;
         }
         
-        /* GRUPO DA DIREITA: Ícones com gap de 4px */
+        .page-subtitle {
+            font-size: 0.75rem !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            margin: 0 !important;
+            opacity: 0.7;
+        }
+        
+        /* GRUPO DA DIREITA: Ícones */
         .navbar-actions {
             display: flex !important;
             align-items: center !important;
             justify-content: flex-end !important;
             gap: 4px !important;
             flex-wrap: nowrap !important;
-            margin-left: auto !important;
-            margin-right: 5px !important;
-            width: auto !important;
-            max-width: max-content !important;
+            flex-shrink: 0 !important;
             overflow: visible !important;
         }
         
@@ -369,40 +383,50 @@
                 flex-wrap: nowrap !important;
                 align-items: center !important;
                 justify-content: space-between !important;
-                padding: 0.75rem 0.5rem !important;
+                padding: 0.5rem !important;
                 overflow: visible !important;
-                gap: 8px !important;
+                gap: 4px !important;
             }
             
             /* Grupo do título - flex para ocupar espaço disponível */
-            .top-navbar > .d-flex:first-child {
+            .title-container {
                 flex: 1 1 auto !important;
                 min-width: 0 !important;
-                max-width: calc(100% - 150px) !important;
+                overflow: hidden !important;
+                gap: 6px !important;
             }
             
-            /* Título responsivo - permite quebra de linha */
+            .title-wrapper {
+                min-width: 0 !important;
+                overflow: hidden !important;
+            }
+            
+            /* Título responsivo - PERMITIR QUEBRA */
             .page-title {
                 font-size: 0.95rem !important;
                 white-space: normal !important;
-                overflow: visible !important;
-                text-overflow: clip !important;
-                line-height: 1.15 !important;
                 word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                line-height: 1.2 !important;
                 max-width: 100% !important;
+            }
+            
+            /* ESCONDER SUBTÍTULO NO MOBILE PARA DAR ESPAÇO */
+            .page-subtitle {
+                display: none !important;
             }
             
             .btn-theme-toggle,
             .btn-privacy-toggle,
             .btn-actions-toggle,
             .mobile-menu-toggle {
-                width: 34px !important;
-                height: 34px !important;
-                min-width: 34px !important;
-                min-height: 34px !important;
-                max-width: 34px !important;
-                max-height: 34px !important;
-                font-size: 0.9rem !important;
+                width: 32px !important;
+                height: 32px !important;
+                min-width: 32px !important;
+                min-height: 32px !important;
+                max-width: 32px !important;
+                max-height: 32px !important;
+                font-size: 0.85rem !important;
                 flex-shrink: 0 !important;
             }
             
@@ -410,18 +434,16 @@
             .btn-privacy-toggle i,
             .btn-actions-toggle i,
             .mobile-menu-toggle i {
-                font-size: 0.9rem !important;
+                font-size: 0.85rem !important;
             }
             
-            /* ÍCONES COLADOS - GAP 2px, ALINHADOS À DIREITA */
+            /* ÍCONES - MENOS GAP */
             .navbar-actions {
                 display: flex !important;
                 flex-direction: row !important;
                 flex-wrap: nowrap !important;
                 align-items: center !important;
                 gap: 2px !important;
-                margin-left: auto !important;
-                margin-right: 0 !important;
                 flex-shrink: 0 !important;
                 justify-content: flex-end !important;
                 overflow: visible !important;
@@ -431,12 +453,12 @@
         /* MOBILE PEQUENO: Abaixo de 400px */
         @media (max-width: 399.98px) {
             .top-navbar {
-                padding: 0.5rem 0.35rem !important;
-                gap: 4px !important;
+                padding: 0.3rem !important;
+                gap: 2px !important;
             }
             
-            .top-navbar > .d-flex:first-child {
-                max-width: calc(100% - 130px) !important;
+            .title-container {
+                gap: 3px !important;
             }
             
             .page-title {
@@ -444,21 +466,23 @@
                 line-height: 1.1 !important;
             }
             
+            /* Subtítulo já está oculto via media query anterior */
+            
             .btn-theme-toggle,
             .btn-privacy-toggle,
             .btn-actions-toggle,
             .mobile-menu-toggle {
-                width: 30px !important;
-                height: 30px !important;
-                min-width: 30px !important;
-                min-height: 30px !important;
-                max-width: 30px !important;
-                max-height: 30px !important;
-                font-size: 0.8rem !important;
+                width: 26px !important;
+                height: 26px !important;
+                min-width: 26px !important;
+                min-height: 26px !important;
+                max-width: 26px !important;
+                max-height: 26px !important;
+                font-size: 0.75rem !important;
             }
             
             .navbar-actions {
-                gap: 1px !important;
+                gap: 0px !important;
             }
         }
     </style>
@@ -3158,18 +3182,18 @@
     <!-- Main Content -->
     <main class="main-content">
         <!-- Top Navbar -->
-        <div class="top-navbar" style="display: flex !important; justify-content: space-between !important; align-items: center !important; flex-wrap: nowrap !important; width: 100% !important;">
-            <div class="d-flex align-items-center gap-3" style="flex: 0 0 auto !important;">
+        <div class="top-navbar">
+            <div class="d-flex align-items-center gap-2 title-container">
                 <!-- Menu Toggle Button (Desktop: Toggle Sidebar | Mobile: Overlay Menu) -->
                 <button class="mobile-menu-toggle" id="mobileMenuToggle" title="Menu">
                     <i class="fas fa-bars"></i>
                 </button>
-                <div>
+                <div class="title-wrapper">
                     <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
                     <p class="page-subtitle">{% block page_subtitle %}{% endblock %}</p>
                 </div>
             </div>
-            <div class="navbar-actions" style="display: flex !important; align-items: center !important; gap: 2px !important; flex-wrap: nowrap !important; margin-left: auto !important; margin-right: 8px !important; justify-content: flex-end !important;">
+            <div class="navbar-actions">
                 <!-- 1️⃣ ÍCONE OLHO (Privacidade) -->
                 <button class="btn-privacy-toggle" id="btn-privacy" title="Modo Privacidade">
                     <i class="fas fa-eye"></i>
